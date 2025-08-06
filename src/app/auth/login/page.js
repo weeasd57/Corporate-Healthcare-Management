@@ -1,140 +1,230 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Building2, Stethoscope, Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { auth, db } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
-import { Building2, Stethoscope, Eye, EyeOff } from 'lucide-react'
+import { validateEmail } from '@/lib/utils'
+
+// Schema validation
+const loginSchema = z.object({
+  email: z.string().email('البريد الإلكتروني غير صحيح'),
+  password: z.string().min(1, 'كلمة المرور مطلوبة')
+})
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    resolver: zodResolver(loginSchema)
+  })
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+  useEffect(() => {
+    // Check for success message from registration
+    const successMessage = searchParams.get('message')
+    if (successMessage) {
+      setMessage(successMessage)
+    }
 
-      if (error) {
-        setError(error.message)
-        return
-      }
-
-      if (data.user) {
-        // Redirect to dashboard
+    // Check if user is already logged in
+    const checkAuth = async () => {
+      const { user } = await auth.getCurrentUser()
+      if (user) {
         router.push('/dashboard')
       }
+    }
+    checkAuth()
+  }, [searchParams, router])
+
+  const onSubmit = async (data) => {
+    setIsLoading(true)
+    setError('')
+    setMessage('')
+
+    try {
+      // Sign in user
+      const { data: authData, error: authError } = await auth.signIn(data.email, data.password)
+
+      if (authError) throw authError
+
+      if (authData.user) {
+        // Get user details from database
+        const { data: userData, error: userError } = await db.getUserByAuthId(authData.user.id)
+
+        if (userError) throw userError
+
+        if (userData) {
+          // Redirect based on user role
+          if (userData.role.startsWith('company_')) {
+            router.push('/dashboard/company')
+          } else if (userData.role.startsWith('hospital_')) {
+            router.push('/dashboard/hospital')
+          } else {
+            router.push('/dashboard')
+          }
+        } else {
+          router.push('/dashboard')
+        }
+      }
+      
     } catch (error) {
-      setError('حدث خطأ أثناء تسجيل الدخول')
+      console.error('Login error:', error)
+      setError(error.message || 'حدث خطأ أثناء تسجيل الدخول')
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
-            <Building2 className="h-6 w-6 text-blue-600" />
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            تسجيل الدخول
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            نظام إدارة الصحة للشركات والمستشفيات
-          </p>
-        </div>
-
-        <Card>
-          <form className="space-y-6" onSubmit={handleLogin}>
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <p className="text-sm text-red-600">{error}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Card className="p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="flex items-center space-x-4 space-x-reverse">
+                <Building2 className="h-8 w-8 text-green-600" />
+                <Stethoscope className="h-8 w-8 text-blue-600" />
               </div>
-            )}
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              تسجيل الدخول
+            </h1>
+            <p className="text-gray-600">
+              أدخل بياناتك للوصول إلى نظام إدارة الصحة
+            </p>
+          </div>
 
-            <Input
-              label="البريد الإلكتروني"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="أدخل بريدك الإلكتروني"
-            />
+          {/* Success Message */}
+          {message && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-600 text-sm">{message}</p>
+            </div>
+          )}
 
-            <div className="relative">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                البريد الإلكتروني *
+              </label>
               <Input
-                label="كلمة المرور"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="أدخل كلمة المرور"
+                {...register('email')}
+                type="email"
+                placeholder="أدخل بريدك الإلكتروني"
+                error={errors.email?.message}
               />
-              <button
-                type="button"
-                className="absolute left-3 top-8 text-gray-400 hover:text-gray-600"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                كلمة المرور *
+              </label>
+              <div className="relative">
+                <Input
+                  {...register('password')}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="أدخل كلمة المرور"
+                  error={errors.password?.message}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
             <Button
               type="submit"
+              size="lg"
               className="w-full"
-              loading={loading}
-              disabled={loading}
+              loading={isLoading}
             >
-              تسجيل الدخول
+              {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+              <ArrowRight className="h-5 w-5 mr-2" />
             </Button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">أو</span>
+          {/* Registration Links */}
+          <div className="mt-8 space-y-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-4">
+                ليس لديك حساب؟ سجل كـ:
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => router.push('/auth/register/company')}
+                >
+                  <Building2 className="h-4 w-4 ml-2" />
+                  شركة
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => router.push('/auth/register/hospital')}
+                >
+                  <Stethoscope className="h-4 w-4 ml-2" />
+                  مستشفى
+                </Button>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                onClick={() => router.push('/auth/register/company')}
-                className="w-full"
+            <div className="text-center">
+              <a
+                href="#"
+                className="text-sm text-blue-600 hover:underline"
+                onClick={(e) => {
+                  e.preventDefault()
+                  // TODO: Implement forgot password
+                  alert('سيتم إضافة هذه الميزة قريباً')
+                }}
               >
-                <Building2 className="h-4 w-4 ml-2" />
-                تسجيل شركة
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/auth/register/hospital')}
-                className="w-full"
-              >
-                <Stethoscope className="h-4 w-4 ml-2" />
-                تسجيل مستشفى
-              </Button>
+                نسيت كلمة المرور؟
+              </a>
             </div>
+          </div>
+
+          {/* Back to Home */}
+          <div className="mt-8 text-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/')}
+            >
+              العودة للصفحة الرئيسية
+            </Button>
           </div>
         </Card>
       </div>
