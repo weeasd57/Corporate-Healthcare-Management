@@ -103,6 +103,24 @@ export const db = {
     return { data, error }
   },
 
+  updateUser: async (id, updates) => {
+    const { data, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    return { data, error }
+  },
+
+  deleteUser: async (id) => {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id)
+    return { error }
+  },
+
   // Medical Records
   createMedicalRecord: async (recordData) => {
     const { data, error } = await supabase

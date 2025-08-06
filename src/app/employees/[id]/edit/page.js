@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -9,7 +9,7 @@ import {
   Users, 
   ArrowLeft, 
   Save, 
-  UserPlus,
+  Edit,
   Building2
 } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
@@ -31,7 +31,8 @@ const employeeSchema = z.object({
   department: z.string().min(1, 'القسم مطلوب'),
   position: z.string().min(1, 'الوظيفة مطلوبة'),
   hire_date: z.string().min(1, 'تاريخ التوظيف مطلوب'),
-  role: z.string().min(1, 'الدور مطلوب')
+  role: z.string().min(1, 'الدور مطلوب'),
+  is_active: z.boolean()
 })
 
 const departments = [
@@ -61,12 +62,16 @@ const roles = [
   { value: 'company_manager', label: 'مدير' }
 ]
 
-export default function AddEmployeePage() {
+export default function EditEmployeePage() {
   const router = useRouter()
+  const params = useParams()
   const { userData, organization } = useAuth()
-  const { addEmployee } = useData()
+  const { employees, updateEmployee } = useData()
   const { addNotification } = useApp()
+  
+  const [employee, setEmployee] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   const {
     register,
@@ -75,11 +80,7 @@ export default function AddEmployeePage() {
     reset,
     watch
   } = useForm({
-    resolver: zodResolver(employeeSchema),
-    defaultValues: {
-      role: 'employee',
-      hire_date: new Date().toISOString().split('T')[0]
-    }
+    resolver: zodResolver(employeeSchema)
   })
 
   useEffect(() => {
@@ -92,52 +93,77 @@ export default function AddEmployeePage() {
       router.push('/auth/login')
       return
     }
-  }, [userData, router])
+
+    loadEmployeeData()
+  }, [userData, router, params.id])
+
+  const loadEmployeeData = async () => {
+    try {
+      setInitialLoading(true)
+      
+      // Find employee in the list
+      const foundEmployee = employees.find(emp => emp.id === params.id)
+      if (!foundEmployee) {
+        addNotification({
+          type: 'error',
+          title: 'خطأ',
+          message: 'لم يتم العثور على الموظف'
+        })
+        router.push('/employees')
+        return
+      }
+
+      setEmployee(foundEmployee)
+
+      // Set form values
+      reset({
+        first_name: foundEmployee.first_name,
+        last_name: foundEmployee.last_name,
+        email: foundEmployee.email,
+        phone: foundEmployee.phone,
+        employee_id: foundEmployee.employee_id,
+        department: foundEmployee.department,
+        position: foundEmployee.position,
+        hire_date: foundEmployee.hire_date,
+        role: foundEmployee.role,
+        is_active: foundEmployee.is_active
+      })
+
+    } catch (error) {
+      console.error('Load employee data error:', error)
+      addNotification({
+        type: 'error',
+        title: 'خطأ',
+        message: 'حدث خطأ أثناء تحميل بيانات الموظف'
+      })
+    } finally {
+      setInitialLoading(false)
+    }
+  }
 
   const onSubmit = async (data) => {
     setIsLoading(true)
 
     try {
-      // Create employee user record
-      const { data: employeeData, error: employeeError } = await addEmployee({
-        organization_id: userData.organization_id,
-        email: data.email,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        phone: data.phone,
-        role: data.role,
-        department: data.department,
-        position: data.position,
-        employee_id: data.employee_id,
-        hire_date: data.hire_date,
-        is_active: true
-      })
-
-      if (employeeError) throw employeeError
-
-      // Create medical record for the employee
-      const { error: medicalError } = await db.createMedicalRecord({
-        employee_id: employeeData.id,
-        health_status: 'healthy'
-      })
-
-      if (medicalError) throw medicalError
+      const { error } = await updateEmployee(employee.id, data)
+      
+      if (error) throw error
 
       addNotification({
         type: 'success',
-        title: 'تم الإضافة',
-        message: 'تم إضافة الموظف بنجاح'
+        title: 'تم التحديث',
+        message: 'تم تحديث بيانات الموظف بنجاح'
       })
 
-      // Success - redirect to employees list
-      router.push('/employees')
+      // Redirect to employee details
+      router.push(`/employees/${employee.id}`)
       
     } catch (error) {
-      console.error('Add employee error:', error)
+      console.error('Update employee error:', error)
       addNotification({
         type: 'error',
         title: 'خطأ',
-        message: error.message || 'حدث خطأ أثناء إضافة الموظف'
+        message: error.message || 'حدث خطأ أثناء تحديث بيانات الموظف'
       })
     } finally {
       setIsLoading(false)
@@ -146,6 +172,33 @@ export default function AddEmployeePage() {
 
   const selectedDepartment = watch('department')
   const selectedRole = watch('role')
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">جاري التحميل...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!employee) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            لم يتم العثور على الموظف
+          </h3>
+          <Button onClick={() => router.push('/employees')}>
+            العودة لقائمة الموظفين
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -157,16 +210,16 @@ export default function AddEmployeePage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push('/dashboard/company')}
+                onClick={() => router.push(`/employees/${employee.id}`)}
               >
                 <ArrowLeft className="h-4 w-4 ml-2" />
-                العودة للوحة التحكم
+                العودة لتفاصيل الموظف
               </Button>
               
               <div className="flex items-center space-x-2 space-x-reverse">
-                <Users className="h-6 w-6 text-blue-600" />
+                <Edit className="h-6 w-6 text-blue-600" />
                 <h1 className="text-xl font-semibold text-gray-900">
-                  إضافة موظف جديد
+                  تعديل بيانات الموظف
                 </h1>
               </div>
             </div>
@@ -187,17 +240,15 @@ export default function AddEmployeePage() {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <UserPlus className="h-12 w-12 text-blue-600" />
+              <Edit className="h-12 w-12 text-blue-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              إضافة موظف جديد
+              تعديل بيانات الموظف
             </h2>
             <p className="text-gray-600">
-              قم بإدخال بيانات الموظف الجديد
+              قم بتعديل بيانات الموظف {employee.first_name} {employee.last_name}
             </p>
           </div>
-
-
 
           {/* Employee Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -319,6 +370,32 @@ export default function AddEmployeePage() {
                     error={errors.role?.message}
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    الحالة
+                  </label>
+                  <div className="flex items-center space-x-4 space-x-reverse">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        {...register('is_active')}
+                        value={true}
+                        className="ml-2"
+                      />
+                      <span className="text-sm">نشط</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        {...register('is_active')}
+                        value={false}
+                        className="ml-2"
+                      />
+                      <span className="text-sm">غير نشط</span>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -331,14 +408,14 @@ export default function AddEmployeePage() {
                 loading={isLoading}
               >
                 <Save className="h-5 w-5 ml-2" />
-                {isLoading ? 'جاري الإضافة...' : 'إضافة الموظف'}
+                {isLoading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
               </Button>
               
               <Button
                 type="button"
                 variant="outline"
                 size="lg"
-                onClick={() => router.push('/employees')}
+                onClick={() => router.push(`/employees/${employee.id}`)}
               >
                 <ArrowLeft className="h-5 w-5 ml-2" />
                 إلغاء
@@ -352,9 +429,9 @@ export default function AddEmployeePage() {
               ملاحظات مهمة:
             </h4>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• سيتم إنشاء سجل طبي تلقائياً للموظف الجديد</li>
+              <li>• سيتم تحديث البيانات فوراً بعد الحفظ</li>
               <li>• يمكن للموظف الوصول للنظام باستخدام بريده الإلكتروني</li>
-              <li>• يمكن تعديل البيانات لاحقاً من صفحة إدارة الموظفين</li>
+              <li>• تغيير الحالة إلى غير نشط سيمنع الموظف من الوصول للنظام</li>
             </ul>
           </div>
         </Card>
