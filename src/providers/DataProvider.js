@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { db } from '@/lib/supabase'
 import { useAuth } from './AuthProvider'
 
@@ -21,9 +21,9 @@ export function DataProvider({ children }) {
     if (userData && organization) {
       loadData()
     }
-  }, [userData, organization])
+  }, [userData, organization, loadData])
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!userData?.organization_id) return
 
     setLoading(true)
@@ -61,7 +61,7 @@ export function DataProvider({ children }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [userData?.organization_id])
 
   const refreshData = () => {
     loadData()

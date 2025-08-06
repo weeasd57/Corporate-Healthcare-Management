@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { 
   Users, 
@@ -47,9 +47,9 @@ export default function EmployeeDetailsPage() {
     }
 
     loadEmployeeData()
-  }, [userData, router, params.id])
+  }, [userData, router, params.id, loadEmployeeData])
 
-  const loadEmployeeData = async () => {
+  const loadEmployeeData = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -81,7 +81,7 @@ export default function EmployeeDetailsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [employees, params.id, addNotification, router])
 
   const handleEditEmployee = () => {
     router.push(`/employees/${employee.id}/edit`)

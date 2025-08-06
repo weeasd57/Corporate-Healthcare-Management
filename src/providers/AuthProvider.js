@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { auth, db } from '@/lib/supabase'
 
 const AuthContext = createContext()
@@ -28,9 +28,9 @@ export function AuthProvider({ children }) {
     })
 
     return () => subscription?.unsubscribe()
-  }, [])
+  }, [checkAuth, loadUserData])
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const { user } = await auth.getCurrentUser()
       if (user) {
@@ -41,9 +41,9 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [loadUserData])
 
-  const loadUserData = async (authUser) => {
+  const loadUserData = useCallback(async (authUser) => {
     try {
       setUser(authUser)
       
@@ -59,7 +59,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Load user data error:', error)
     }
-  }
+  }, [])
 
   const signIn = async (email, password) => {
     try {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   Users, 
@@ -67,9 +67,9 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     filterEmployees()
-  }, [employees, searchTerm, selectedDepartment, selectedStatus])
+  }, [employees, searchTerm, selectedDepartment, selectedStatus, filterEmployees])
 
-  const filterEmployees = () => {
+  const filterEmployees = useCallback(() => {
     let filtered = [...employees]
 
     // Filter by search term
@@ -95,7 +95,7 @@ export default function EmployeesPage() {
     }
 
     setFilteredEmployees(filtered)
-  }
+  }, [employees, searchTerm, selectedDepartment, selectedStatus])
 
   const handleViewEmployee = (employee) => {
     router.push(`/employees/${employee.id}`)

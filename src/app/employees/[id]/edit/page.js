@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -95,9 +95,9 @@ export default function EditEmployeePage() {
     }
 
     loadEmployeeData()
-  }, [userData, router, params.id])
+  }, [userData, router, params.id, loadEmployeeData])
 
-  const loadEmployeeData = async () => {
+  const loadEmployeeData = useCallback(async () => {
     try {
       setInitialLoading(true)
       
@@ -139,7 +139,7 @@ export default function EditEmployeePage() {
     } finally {
       setInitialLoading(false)
     }
-  }
+  }, [employees, params.id, addNotification, router, reset])
 
   const onSubmit = async (data) => {
     setIsLoading(true)
