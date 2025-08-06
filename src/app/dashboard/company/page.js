@@ -13,115 +13,58 @@ import {
   Search,
   Filter
 } from 'lucide-react'
-import { auth, db } from '@/lib/supabase'
+import { useAuth } from '@/providers/AuthProvider'
+import { useData } from '@/providers/DataProvider'
+import { useApp } from '@/providers/AppProvider'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import { formatDate, getStatusColor, getStatusText } from '@/lib/utils'
 
 export default function CompanyDashboard() {
   const router = useRouter()
-  const [user, setUser] = useState(null)
-  const [organization, setOrganization] = useState(null)
-  const [stats, setStats] = useState({
-    totalEmployees: 0,
-    activeEmployees: 0,
-    pendingAppointments: 0,
-    pendingSickLeaves: 0,
-    upcomingCheckups: 0,
-    totalContracts: 0
-  })
-  const [recentEmployees, setRecentEmployees] = useState([])
-  const [upcomingAppointments, setUpcomingAppointments] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { userData, organization, signOut } = useAuth()
+  const { employees, appointments, sickLeaves, checkups, contracts, loading } = useData()
+  const { addNotification } = useApp()
 
   useEffect(() => {
-    checkAuth()
-    loadDashboardData()
-  }, [])
-
-  const checkAuth = async () => {
-    try {
-      const { user } = await auth.getCurrentUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
-
-      const { data: userData } = await db.getUserByAuthId(user.id)
-      if (!userData || !userData.role.startsWith('company_')) {
-        router.push('/auth/login')
-        return
-      }
-
-      setUser(userData)
-      
-      // Load organization data
-      const { data: orgData } = await db.getOrganization(userData.organization_id)
-      setOrganization(orgData)
-    } catch (error) {
-      console.error('Auth check error:', error)
+    if (!userData) {
       router.push('/auth/login')
+      return
     }
-  }
 
-  const loadDashboardData = async () => {
-    if (!user) return
-
-    try {
-      // Load employees
-      const { data: employees } = await db.getUsersByOrganization(user.organization_id)
-      const activeEmployees = employees?.filter(emp => emp.is_active) || []
-      
-      // Load appointments
-      const { data: appointments } = await db.getAppointments({
-        employeeId: user.organization_id,
-        status: 'scheduled'
-      })
-
-      // Load sick leaves
-      const { data: sickLeaves } = await db.getSickLeaves({
-        employeeId: user.organization_id,
-        status: 'pending'
-      })
-
-      // Load checkups
-      const { data: checkups } = await db.getCheckups({
-        employeeId: user.organization_id,
-        status: 'scheduled'
-      })
-
-      // Load contracts
-      const { data: contracts } = await db.getContracts({
-        companyId: user.organization_id
-      })
-
-      setStats({
-        totalEmployees: employees?.length || 0,
-        activeEmployees: activeEmployees.length,
-        pendingAppointments: appointments?.length || 0,
-        pendingSickLeaves: sickLeaves?.length || 0,
-        upcomingCheckups: checkups?.length || 0,
-        totalContracts: contracts?.length || 0
-      })
-
-      setRecentEmployees(employees?.slice(0, 5) || [])
-      setUpcomingAppointments(appointments?.slice(0, 5) || [])
-
-    } catch (error) {
-      console.error('Dashboard data error:', error)
-    } finally {
-      setLoading(false)
+    if (!userData.role.startsWith('company_')) {
+      router.push('/auth/login')
+      return
     }
-  }
+  }, [userData, router])
 
   const handleLogout = async () => {
     try {
-      await auth.signOut()
+      const { error } = await signOut()
+      if (error) throw error
       router.push('/auth/login')
     } catch (error) {
       console.error('Logout error:', error)
+      addNotification({
+        type: 'error',
+        title: 'خطأ',
+        message: 'حدث خطأ أثناء تسجيل الخروج'
+      })
     }
   }
+
+  // Calculate stats from data
+  const stats = {
+    totalEmployees: employees.length,
+    activeEmployees: employees.filter(emp => emp.is_active).length,
+    pendingAppointments: appointments.filter(apt => apt.status === 'scheduled').length,
+    pendingSickLeaves: sickLeaves.filter(leave => leave.status === 'pending').length,
+    upcomingCheckups: checkups.filter(checkup => checkup.status === 'scheduled').length,
+    totalContracts: contracts.length
+  }
+
+  const recentEmployees = employees.slice(0, 5)
+  const upcomingAppointments = appointments.filter(apt => apt.status === 'scheduled').slice(0, 5)
 
   if (loading) {
     return (

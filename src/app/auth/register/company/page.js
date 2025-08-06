@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Building2, ArrowLeft, Eye, EyeOff } from 'lucide-react'
-import { auth, db } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
@@ -55,43 +55,51 @@ export default function CompanyRegistrationPage() {
 
     try {
       // 1. Create organization
-      const { data: orgData, error: orgError } = await db.createOrganization({
-        name: data.name,
-        type: 'company',
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        contact_person: data.contact_person,
-        status: 'active'
-      })
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: data.name,
+          type: 'company',
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          contact_person: data.contact_person,
+          status: 'active'
+        })
+        .select()
+        .single()
 
       if (orgError) throw orgError
 
       // 2. Create auth user
-      const { data: authData, error: authError } = await auth.signUp(
-        data.admin_email,
-        data.password,
-        {
-          first_name: data.admin_first_name,
-          last_name: data.admin_last_name,
-          organization_id: orgData.id,
-          role: 'company_admin'
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.admin_email,
+        password: data.password,
+        options: {
+          data: {
+            first_name: data.admin_first_name,
+            last_name: data.admin_last_name,
+            organization_id: orgData.id,
+            role: 'company_admin'
+          }
         }
-      )
+      })
 
       if (authError) throw authError
 
       // 3. Create user record
-      const { error: userError } = await db.createUser({
-        auth_id: authData.user.id,
-        organization_id: orgData.id,
-        email: data.admin_email,
-        first_name: data.admin_first_name,
-        last_name: data.admin_last_name,
-        phone: data.admin_phone,
-        role: 'company_admin',
-        is_active: true
-      })
+      const { error: userError } = await supabase
+        .from('users')
+        .insert({
+          auth_id: authData.user.id,
+          organization_id: orgData.id,
+          email: data.admin_email,
+          first_name: data.admin_first_name,
+          last_name: data.admin_last_name,
+          phone: data.admin_phone,
+          role: 'company_admin',
+          is_active: true
+        })
 
       if (userError) throw userError
 

@@ -6,7 +6,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Building2, Stethoscope, Eye, EyeOff, ArrowRight } from 'lucide-react'
-import { auth, db } from '@/lib/supabase'
+import { useAuth } from '@/providers/AuthProvider'
+import { useApp } from '@/providers/AppProvider'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
@@ -21,10 +22,10 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { userData, signIn } = useAuth()
+  const { addNotification } = useApp()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
 
   const {
     register,
@@ -38,45 +39,40 @@ export default function LoginPage() {
     // Check for success message from registration
     const successMessage = searchParams.get('message')
     if (successMessage) {
-      setMessage(successMessage)
+      addNotification({
+        type: 'success',
+        title: 'نجح التسجيل',
+        message: successMessage
+      })
     }
 
     // Check if user is already logged in
-    const checkAuth = async () => {
-      const { user } = await auth.getCurrentUser()
-      if (user) {
+    if (userData) {
+      if (userData.role.startsWith('company_')) {
+        router.push('/dashboard/company')
+      } else if (userData.role.startsWith('hospital_')) {
+        router.push('/dashboard/hospital')
+      } else {
         router.push('/dashboard')
       }
     }
-    checkAuth()
-  }, [searchParams, router])
+  }, [searchParams, router, userData, addNotification])
 
   const onSubmit = async (data) => {
     setIsLoading(true)
-    setError('')
-    setMessage('')
 
     try {
       // Sign in user
-      const { data: authData, error: authError } = await auth.signIn(data.email, data.password)
+      const { data: authData, error: authError } = await signIn(data.email, data.password)
 
       if (authError) throw authError
 
       if (authData.user) {
-        // Get user details from database
-        const { data: userData, error: userError } = await db.getUserByAuthId(authData.user.id)
-
-        if (userError) throw userError
-
-        if (userData) {
-          // Redirect based on user role
-          if (userData.role.startsWith('company_')) {
-            router.push('/dashboard/company')
-          } else if (userData.role.startsWith('hospital_')) {
-            router.push('/dashboard/hospital')
-          } else {
-            router.push('/dashboard')
-          }
+        // Redirect based on user role
+        if (userData?.role.startsWith('company_')) {
+          router.push('/dashboard/company')
+        } else if (userData?.role.startsWith('hospital_')) {
+          router.push('/dashboard/hospital')
         } else {
           router.push('/dashboard')
         }
@@ -84,7 +80,11 @@ export default function LoginPage() {
       
     } catch (error) {
       console.error('Login error:', error)
-      setError(error.message || 'حدث خطأ أثناء تسجيل الدخول')
+      addNotification({
+        type: 'error',
+        title: 'خطأ في تسجيل الدخول',
+        message: error.message || 'حدث خطأ أثناء تسجيل الدخول'
+      })
     } finally {
       setIsLoading(false)
     }
@@ -110,19 +110,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Success Message */}
-          {message && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-600 text-sm">{message}</p>
-            </div>
-          )}
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600 text-sm">{error}</p>
-            </div>
-          )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

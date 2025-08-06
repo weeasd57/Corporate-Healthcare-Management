@@ -1,10 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'example-key'
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+  console.warn('Missing Supabase environment variables')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
@@ -101,6 +101,24 @@ export const db = {
       .eq('organization_id', orgId)
       .order('created_at', { ascending: false })
     return { data, error }
+  },
+
+  updateUser: async (id, updates) => {
+    const { data, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    return { data, error }
+  },
+
+  deleteUser: async (id) => {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id)
+    return { error }
   },
 
   // Medical Records
