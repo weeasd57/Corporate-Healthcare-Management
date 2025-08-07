@@ -16,13 +16,6 @@ export function DataProvider({ children }) {
   const [medicalRecords, setMedicalRecords] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // Load data when user or organization changes
-  useEffect(() => {
-    if (userData && organization) {
-      loadData()
-    }
-  }, [userData, organization, loadData])
-
   const loadData = useCallback(async () => {
     if (!userData?.organization_id) return
 
@@ -62,6 +55,13 @@ export function DataProvider({ children }) {
       setLoading(false)
     }
   }, [userData?.organization_id])
+
+  // Load data when user or organization changes
+  useEffect(() => {
+    if (userData && organization) {
+      loadData()
+    }
+  }, [userData, organization, loadData])
 
   const refreshData = () => {
     loadData()

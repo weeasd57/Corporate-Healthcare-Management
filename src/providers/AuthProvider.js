@@ -11,6 +11,55 @@ export function AuthProvider({ children }) {
   const [organization, setOrganization] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const loadUserData = useCallback(async (authUser) => {
+    try {
+      setUser(authUser)
+      
+      // Load user data from database
+      const { data: foundUser } = await db.getUserByAuthId(authUser.id)
+      if (foundUser) {
+        setUserData(foundUser)
+        const { data: orgData } = await db.getOrganization(foundUser.organization_id)
+        setOrganization(orgData)
+        return
+      }
+
+      // Fallback: create user row from auth metadata if missing
+      const meta = authUser.user_metadata || {}
+      if (meta.organization_id) {
+        const { data: created } = await db.createUser({
+          auth_id: authUser.id,
+          organization_id: meta.organization_id,
+          email: authUser.email,
+          first_name: meta.first_name || '',
+          last_name: meta.last_name || '',
+          role: meta.role || 'employee',
+          is_active: true
+        })
+        if (created) {
+          setUserData(created)
+          const { data: orgData } = await db.getOrganization(created.organization_id)
+          setOrganization(orgData)
+        }
+      }
+    } catch (error) {
+      console.error('Load user data error:', error)
+    }
+  }, [])
+
+  const checkAuth = useCallback(async () => {
+    try {
+      const { user } = await auth.getCurrentUser()
+      if (user) {
+        await loadUserData(user)
+      }
+    } catch (error) {
+      console.error('Auth check error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [loadUserData])
+
   useEffect(() => {
     // Check initial auth state
     checkAuth()
@@ -29,37 +78,6 @@ export function AuthProvider({ children }) {
 
     return () => subscription?.unsubscribe()
   }, [checkAuth, loadUserData])
-
-  const checkAuth = useCallback(async () => {
-    try {
-      const { user } = await auth.getCurrentUser()
-      if (user) {
-        await loadUserData(user)
-      }
-    } catch (error) {
-      console.error('Auth check error:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [loadUserData])
-
-  const loadUserData = useCallback(async (authUser) => {
-    try {
-      setUser(authUser)
-      
-      // Load user data from database
-      const { data: userData } = await db.getUserByAuthId(authUser.id)
-      if (userData) {
-        setUserData(userData)
-        
-        // Load organization data
-        const { data: orgData } = await db.getOrganization(userData.organization_id)
-        setOrganization(orgData)
-      }
-    } catch (error) {
-      console.error('Load user data error:', error)
-    }
-  }, [])
 
   const signIn = async (email, password) => {
     try {

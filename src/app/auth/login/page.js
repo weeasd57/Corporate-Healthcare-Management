@@ -53,7 +53,7 @@ export default function LoginPage() {
       } else if (userData.role.startsWith('hospital_')) {
         router.push('/dashboard/hospital')
       } else {
-        router.push('/dashboard')
+        router.push('/dashboard/company')
       }
     }
   }, [searchParams, router, userData, addNotification])
@@ -68,13 +68,14 @@ export default function LoginPage() {
       if (authError) throw authError
 
       if (authData.user) {
-        // Redirect based on user role
-        if (userData?.role.startsWith('company_')) {
+        // Redirect based on user role from auth metadata immediately after sign-in
+        const metaRole = authData.user.user_metadata?.role
+        if (metaRole?.startsWith('company_')) {
           router.push('/dashboard/company')
-        } else if (userData?.role.startsWith('hospital_')) {
+        } else if (metaRole?.startsWith('hospital_')) {
           router.push('/dashboard/hospital')
         } else {
-          router.push('/dashboard')
+          router.push('/dashboard/company')
         }
       }
       

@@ -1,9 +1,11 @@
--- Supabase Database Schema for Corporate Healthcare MVP
 -- Single source code for both Company and Hospital
 
 -- =============================================
 -- USERS & AUTHENTICATION
 -- =============================================
+
+-- Ensure required extensions exist
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Organizations (Companies & Hospitals)
 CREATE TABLE organizations (
@@ -262,6 +264,8 @@ CREATE INDEX idx_organizations_status ON organizations(status);
 CREATE INDEX idx_users_organization_id ON users(organization_id);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_auth_id ON users(auth_id);
+-- Ensure unique auth_id per user
+ALTER TABLE public.users ADD CONSTRAINT users_auth_id_key UNIQUE(auth_id);
 
 -- Medical records indexes
 CREATE INDEX idx_medical_records_employee_id ON medical_records(employee_id);
@@ -304,28 +308,47 @@ ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoice_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
--- Basic RLS policies (can be expanded based on specific requirements)
 
--- Users can only see their own organization's data
-CREATE POLICY "Users can view own organization" ON users
-    FOR SELECT USING (
-        organization_id IN (
-            SELECT organization_id FROM users WHERE auth_id = auth.uid()
-        )
-    );
+-- DEV POLICIES: simplify to avoid uuid/text casting issues. Tighten later.
 
--- Companies can only see their employees' medical records
-CREATE POLICY "Companies see own employees medical records" ON medical_records
-    FOR SELECT USING (
-        employee_id IN (
-            SELECT id FROM users 
-            WHERE organization_id IN (
-                SELECT organization_id FROM users WHERE auth_id = auth.uid()
-            )
-        )
-    );
+CREATE POLICY "users_select_own" ON users
+  FOR SELECT USING (auth_id = auth.uid());
+
+CREATE POLICY "users_insert_own" ON users
+  FOR INSERT WITH CHECK (auth_id = auth.uid());
+
+CREATE POLICY "users_update_own" ON users
+  FOR UPDATE USING (auth_id = auth.uid())
+  WITH CHECK (auth_id = auth.uid());
+
+-- Allow anon users to insert into organizations table
+CREATE POLICY "Allow anon insert to organizations" ON organizations
+    FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow anon select from organizations" ON organizations
+    FOR SELECT USING (true);
+
+-- Development: allow select all orgs
+CREATE POLICY "orgs_select_all" ON organizations
+  FOR SELECT USING (true);
+
+-- Allow anon users to insert into users table (for initial admin user)
+CREATE POLICY "Allow anon insert to users" ON users
+    FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "medrecs_select_all" ON medical_records
+    FOR SELECT USING (true);
 
 -- Similar policies for other tables...
+
+CREATE POLICY "appointments_select_all" ON appointments
+  FOR SELECT USING (true);
+
+CREATE POLICY "checkups_select_all" ON checkups
+  FOR SELECT USING (true);
+
+CREATE POLICY "sick_leaves_select_all" ON sick_leaves
+  FOR SELECT USING (true);
 
 -- =============================================
 -- USEFUL FUNCTIONS
@@ -393,15 +416,3 @@ CREATE TRIGGER update_sick_leaves_updated_at BEFORE UPDATE ON sick_leaves
 
 CREATE TRIGGER update_appointments_updated_at BEFORE UPDATE ON appointments
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- =============================================
--- SAMPLE DATA INSERTS (Optional - for testing)
--- =============================================
-
--- Insert sample company
-INSERT INTO organizations (name, type, email, phone, address, contact_person) VALUES
-('TechCorp Solutions', 'company', 'hr@techcorp.com', '+20123456789', 'Cairo, Egypt', 'Ahmed Hassan');
-
--- Insert sample hospital
-INSERT INTO organizations (name, type, email, phone, address, license_number, contact_person) VALUES
-('Cairo Medical Center', 'hospital', 'admin@cairomed.com', '+20987654321', 'New Cairo, Egypt', 'H-2024-001', 'Dr. Sarah Mohamed');

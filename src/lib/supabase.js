@@ -68,11 +68,24 @@ export const db = {
 
   // Users
   createUser: async (userData) => {
-    const { data, error } = await supabase
+    // Use upsert to avoid duplicate email constraint errors during race conditions
+    let { data, error } = await supabase
       .from('users')
-      .insert(userData)
+      .upsert(userData, { onConflict: 'email', ignoreDuplicates: true })
       .select()
-      .single()
+      .maybeSingle()
+
+    // If ignored (no row returned), fetch existing by email
+    if (!data && !error && userData?.email) {
+      const fetchExisting = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', userData.email)
+        .maybeSingle()
+      data = fetchExisting.data
+      error = fetchExisting.error
+    }
+
     return { data, error }
   },
 
@@ -90,7 +103,16 @@ export const db = {
       .from('users')
       .select('*')
       .eq('auth_id', authId)
-      .single()
+      .maybeSingle()
+    return { data, error }
+  },
+
+  getUserByEmail: async (email) => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle()
     return { data, error }
   },
 

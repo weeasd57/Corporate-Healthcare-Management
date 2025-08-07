@@ -22,21 +22,21 @@ import { formatDate, getStatusColor, getStatusText } from '@/lib/utils'
 
 export default function CompanyDashboard() {
   const router = useRouter()
-  const { userData, organization, signOut } = useAuth()
+  const { userData, organization, signOut, loading: authLoading } = useAuth()
   const { employees, appointments, sickLeaves, checkups, contracts, loading } = useData()
   const { addNotification } = useApp()
 
   useEffect(() => {
+    if (authLoading) return
     if (!userData) {
       router.push('/auth/login')
       return
     }
-
-    if (!userData.role.startsWith('company_')) {
+    if (!userData.role?.startsWith('company_')) {
       router.push('/auth/login')
       return
     }
-  }, [userData, router])
+  }, [authLoading, userData, router])
 
   const handleLogout = async () => {
     try {
@@ -66,7 +66,7 @@ export default function CompanyDashboard() {
   const recentEmployees = employees.slice(0, 5)
   const upcomingAppointments = appointments.filter(apt => apt.status === 'scheduled').slice(0, 5)
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -90,7 +90,7 @@ export default function CompanyDashboard() {
                   {organization?.name || 'لوحة تحكم الشركة'}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  مرحباً {user?.first_name} {user?.last_name}
+                  مرحباً {userData?.first_name} {userData?.last_name}
                 </p>
               </div>
             </div>

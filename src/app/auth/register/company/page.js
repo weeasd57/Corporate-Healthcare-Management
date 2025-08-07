@@ -71,8 +71,8 @@ export default function CompanyRegistrationPage() {
 
       if (orgError) throw orgError
 
-      // 2. Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // 2. Create auth user (fallback to sign-in if already registered)
+      let { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.admin_email,
         password: data.password,
         options: {
@@ -85,12 +85,21 @@ export default function CompanyRegistrationPage() {
         }
       })
 
-      if (authError) throw authError
+      if (authError && /already registered/i.test(authError.message || '')) {
+        const signIn = await supabase.auth.signInWithPassword({
+          email: data.admin_email,
+          password: data.password
+        })
+        if (signIn.error) throw signIn.error
+        authData = signIn.data
+      } else if (authError) {
+        throw authError
+      }
 
-      // 3. Create user record
+      // 3. Create user record (upsert to handle duplicates safely)
       const { error: userError } = await supabase
         .from('users')
-        .insert({
+        .upsert({
           auth_id: authData.user.id,
           organization_id: orgData.id,
           email: data.admin_email,
@@ -99,16 +108,18 @@ export default function CompanyRegistrationPage() {
           phone: data.admin_phone,
           role: 'company_admin',
           is_active: true
-        })
+        }, { onConflict: 'email', ignoreDuplicates: true })
+        .select()
+        .maybeSingle()
 
       if (userError) throw userError
 
       // Success - redirect to dashboard
-      router.push('/dashboard')
+      router.push('/dashboard/company')
       
     } catch (error) {
-      console.error('Registration error:', error)
-      setError(error.message || 'حدث خطأ أثناء التسجيل')
+      console.error('Registration error details:', error);
+      setError(error.message || error.description || 'حدث خطأ غير معروف أثناء التسجيل');
     } finally {
       setIsLoading(false)
     }
