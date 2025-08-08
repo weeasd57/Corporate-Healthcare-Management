@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-const Card = ({ 
+export const Card = ({ 
   children, 
   className = '', 
   title,

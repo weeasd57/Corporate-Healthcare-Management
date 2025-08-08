@@ -38,6 +38,7 @@ export default function HospitalDashboard() {
   useEffect(() => {
     checkAuth()
     loadDashboardData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const checkAuth = async () => {

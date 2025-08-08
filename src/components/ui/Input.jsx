@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-const Input = ({ 
+export const Input = ({ 
   label, 
   error, 
   className = '', 

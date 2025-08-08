@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-const Button = ({ 
+export const Button = ({ 
   children, 
   variant = 'primary', 
   size = 'md', 
