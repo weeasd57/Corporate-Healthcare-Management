@@ -111,6 +111,7 @@ export default function ClientCompaniesPage() {
       setFilteredCompanies(mockCompanies)
       setIsLoading(false)
     }, 1000)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

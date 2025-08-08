@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { 
-  Pills, 
   Package, 
   AlertTriangle, 
   Plus, 
@@ -25,7 +24,8 @@ import {
   XCircle,
   TrendingDown,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  Pill
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -154,6 +154,7 @@ export default function PharmacyPage() {
       setPrescriptions(mockPrescriptions)
       setIsLoading(false)
     }, 1000)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const getStockStatus = (medicine) => {
@@ -452,22 +453,22 @@ export default function PharmacyPage() {
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
                   <p className="mt-4 text-gray-500">جاري تحميل الأدوية...</p>
                 </div>
-              ) : filteredMedicines.length === 0 ? (
-                <div className="p-8 text-center">
-                  <Pills className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">لا توجد أدوية</h3>
-                  <p className="mt-1 text-sm text-gray-500">لم يتم العثور على أدوية تطابق معايير البحث</p>
-                </div>
+                           ) : filteredMedicines.length === 0 ? (
+               <div className="p-8 text-center">
+                 <Pill className="mx-auto h-12 w-12 text-gray-400" />
+                 <h3 className="mt-2 text-sm font-medium text-gray-900">لا توجد أدوية</h3>
+                 <p className="mt-1 text-sm text-gray-500">لم يتم العثور على أدوية تطابق معايير البحث</p>
+               </div>
               ) : (
                 <ul className="divide-y divide-gray-200">
                   {filteredMedicines.map((medicine) => (
                     <li key={medicine.id}>
                       <div className="px-4 py-4 sm:px-6 hover:bg-gray-50">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center min-w-0 flex-1">
-                            <div className="flex-shrink-0">
-                              <Pills className="h-10 w-10 text-blue-500" />
-                            </div>
+                                                     <div className="flex items-center min-w-0 flex-1">
+                             <div className="flex-shrink-0">
+                               <Pill className="h-10 w-10 text-blue-500" />
+                             </div>
                             <div className="mr-4 min-w-0 flex-1">
                               <div className="flex items-center justify-between">
                                 <div>
@@ -678,12 +679,12 @@ export default function PharmacyPage() {
                           </div>
 
                           <div className="mr-4 flex-shrink-0 flex flex-col space-y-2">
-                            {prescription.status === 'pending' && (
-                              <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                                <Pills className="h-4 w-4 ml-1" />
-                                صرف الأدوية
-                              </Button>
-                            )}
+                                                         {prescription.status === 'pending' && (
+                               <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                                 <Pill className="h-4 w-4 ml-1" />
+                                 صرف الأدوية
+                               </Button>
+                             )}
                             <div className="flex space-x-2 space-x-reverse">
                               <Button variant="outline" size="sm">
                                 <Eye className="h-4 w-4 ml-1" />

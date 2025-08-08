@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { useEffect, useState } from 'react'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co'
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'example-key'
@@ -8,6 +9,87 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Custom hook for authentication
+export const useAuth = () => {
+  const [user, setUser] = useState(null)
+  const [organization, setOrganization] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const getSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error('Error getting session:', error)
+          return
+        }
+
+        if (session?.user) {
+          setUser(session.user)
+          // Get organization data
+          const { data: orgData } = await supabase
+            .from('organizations')
+            .select('*')
+            .eq('id', session.user.user_metadata?.organization_id)
+            .single()
+          
+          if (orgData) {
+            setOrganization(orgData)
+          }
+        }
+      } catch (error) {
+        console.error('Error in getSession:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    getSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          setUser(session.user)
+          // Get organization data
+          const { data: orgData } = await supabase
+            .from('organizations')
+            .select('*')
+            .eq('id', session.user.user_metadata?.organization_id)
+            .single()
+          
+          if (orgData) {
+            setOrganization(orgData)
+          }
+        } else {
+          setUser(null)
+          setOrganization(null)
+        }
+        setLoading(false)
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (!error) {
+      setUser(null)
+      setOrganization(null)
+    }
+    return { error }
+  }
+
+  return {
+    user,
+    organization,
+    loading,
+    signOut,
+    signIn: auth.signIn,
+    signUp: auth.signUp
+  }
+}
 
 // Helper functions for common operations
 export const auth = {

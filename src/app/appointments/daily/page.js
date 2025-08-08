@@ -130,6 +130,7 @@ export default function DailyAppointmentsPage() {
       setFilteredAppointments(mockAppointments)
       setIsLoading(false)
     }, 1000)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate])
 
   useEffect(() => {
