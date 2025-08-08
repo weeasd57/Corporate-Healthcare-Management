@@ -162,6 +162,16 @@ export const db = {
     return { data, error }
   },
 
+  updateMedicalRecord: async (recordId, updates) => {
+    const { data, error } = await supabase
+      .from('medical_records')
+      .update(updates)
+      .eq('id', recordId)
+      .select()
+      .single()
+    return { data, error }
+  },
+
   // Appointments
   createAppointment: async (appointmentData) => {
     const { data, error } = await supabase
@@ -203,6 +213,14 @@ export const db = {
     return { data, error }
   },
 
+  deleteAppointment: async (id) => {
+    const { error } = await supabase
+      .from('appointments')
+      .delete()
+      .eq('id', id)
+    return { error }
+  },
+
   // Checkups
   createCheckup: async (checkupData) => {
     const { data, error } = await supabase
@@ -238,6 +256,14 @@ export const db = {
     return { data, error }
   },
 
+  deleteCheckup: async (id) => {
+    const { error } = await supabase
+      .from('checkups')
+      .delete()
+      .eq('id', id)
+    return { error }
+  },
+
   // Sick Leaves
   createSickLeave: async (sickLeaveData) => {
     const { data, error } = await supabase
@@ -266,6 +292,24 @@ export const db = {
 
     const { data, error } = await query
     return { data, error }
+  },
+
+  updateSickLeave: async (id, updates) => {
+    const { data, error } = await supabase
+      .from('sick_leaves')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    return { data, error }
+  },
+
+  deleteSickLeave: async (id) => {
+    const { error } = await supabase
+      .from('sick_leaves')
+      .delete()
+      .eq('id', id)
+    return { error }
   },
 
   // Contracts
