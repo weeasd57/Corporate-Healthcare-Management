@@ -151,21 +151,20 @@ export const db = {
   // Users
   createUser: async (userData) => {
     // Use upsert to avoid duplicate email constraint errors during race conditions
-    let { data, error } = await supabase
+    // Do not request returning row to avoid 406 Not Acceptable under some RLS/session states
+    const { error } = await supabase
       .from('users')
       .upsert(userData, { onConflict: 'email', ignoreDuplicates: true })
-      .select()
-      .maybeSingle()
 
-    // If ignored (no row returned), fetch existing by email
-    if (!data && !error && userData?.email) {
+    // Optionally fetch after to minimize time window issues
+    let data = null
+    if (!error && userData?.email) {
       const fetchExisting = await supabase
         .from('users')
         .select('*')
         .eq('email', userData.email)
         .maybeSingle()
       data = fetchExisting.data
-      error = fetchExisting.error
     }
 
     return { data, error }
@@ -278,6 +277,9 @@ export const db = {
     if (filters.employeeId) {
       query = query.eq('employee_id', filters.employeeId)
     }
+    if (filters.employeeIds && Array.isArray(filters.employeeIds) && filters.employeeIds.length > 0) {
+      query = query.in('employee_id', filters.employeeIds)
+    }
     if (filters.hospitalId) {
       query = query.eq('hospital_id', filters.hospitalId)
     }
@@ -327,6 +329,9 @@ export const db = {
     if (filters.employeeId) {
       query = query.eq('employee_id', filters.employeeId)
     }
+    if (filters.employeeIds && Array.isArray(filters.employeeIds) && filters.employeeIds.length > 0) {
+      query = query.in('employee_id', filters.employeeIds)
+    }
     if (filters.hospitalId) {
       query = query.eq('hospital_id', filters.hospitalId)
     }
@@ -367,6 +372,9 @@ export const db = {
 
     if (filters.employeeId) {
       query = query.eq('employee_id', filters.employeeId)
+    }
+    if (filters.employeeIds && Array.isArray(filters.employeeIds) && filters.employeeIds.length > 0) {
+      query = query.in('employee_id', filters.employeeIds)
     }
     if (filters.status) {
       query = query.eq('status', filters.status)

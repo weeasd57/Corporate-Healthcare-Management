@@ -21,40 +21,57 @@ export function DataProvider({ children }) {
 
     setLoading(true)
     try {
-      // Load employees
+      // 1) Load employees first (needed to scope other queries for company accounts)
       const { data: employeesData } = await db.getUsersByOrganization(userData.organization_id)
-      setEmployees(employeesData || [])
+      const safeEmployees = employeesData || []
+      setEmployees(safeEmployees)
 
-      // Load appointments
-      const { data: appointmentsData } = await db.getAppointments({
-        employeeId: userData.organization_id
-      })
-      setAppointments(appointmentsData || [])
+      const employeeIds = safeEmployees.map((e) => e.id)
+      const isCompany = organization?.type === 'company'
+      const isHospital = organization?.type === 'hospital'
 
-      // Load sick leaves
-      const { data: sickLeavesData } = await db.getSickLeaves({
-        employeeId: userData.organization_id
-      })
-      setSickLeaves(sickLeavesData || [])
+      // 2) Scope filters based on organization type to avoid fetching all rows
+      const appointmentsFilter = isCompany
+        ? { employeeIds }
+        : isHospital
+          ? { hospitalId: userData.organization_id }
+          : {}
 
-      // Load checkups
-      const { data: checkupsData } = await db.getCheckups({
-        employeeId: userData.organization_id
-      })
-      setCheckups(checkupsData || [])
+      const checkupsFilter = isCompany
+        ? { employeeIds }
+        : isHospital
+          ? { hospitalId: userData.organization_id }
+          : {}
 
-      // Load contracts
-      const { data: contractsData } = await db.getContracts({
-        companyId: userData.organization_id
-      })
-      setContracts(contractsData || [])
+      const sickLeavesFilter = isCompany
+        ? { employeeIds }
+        : {}
+
+      const contractsFilter = isCompany
+        ? { companyId: userData.organization_id }
+        : isHospital
+          ? { hospitalId: userData.organization_id }
+          : {}
+
+      // 3) Run the rest in parallel for speed
+      const [appointmentsRes, sickLeavesRes, checkupsRes, contractsRes] = await Promise.all([
+        db.getAppointments(appointmentsFilter),
+        db.getSickLeaves(sickLeavesFilter),
+        db.getCheckups(checkupsFilter),
+        db.getContracts(contractsFilter)
+      ])
+
+      setAppointments(appointmentsRes.data || [])
+      setSickLeaves(sickLeavesRes.data || [])
+      setCheckups(checkupsRes.data || [])
+      setContracts(contractsRes.data || [])
 
     } catch (error) {
       console.error('Load data error:', error)
     } finally {
       setLoading(false)
     }
-  }, [userData?.organization_id])
+  }, [userData?.organization_id, organization?.type])
 
   // Load data when user or organization changes
   useEffect(() => {

@@ -97,6 +97,7 @@ export default function CompanyRegistrationPage() {
       }
 
       // 3. Create user record (upsert to handle duplicates safely)
+      // Avoid returning representation to prevent 406 when session isn't yet authenticated
       const { error: userError } = await supabase
         .from('users')
         .upsert({
@@ -109,8 +110,6 @@ export default function CompanyRegistrationPage() {
           role: 'company_admin',
           is_active: true
         }, { onConflict: 'email', ignoreDuplicates: true })
-        .select()
-        .maybeSingle()
 
       if (userError) throw userError
 

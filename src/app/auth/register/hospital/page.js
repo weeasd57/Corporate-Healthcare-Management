@@ -89,10 +89,10 @@ export default function HospitalRegistrationPage() {
 
       if (authError) throw authError
 
-      // 3. Create user record
+      // 3. Create user record (no select to avoid 406 before RLS/session fully ready)
       const { error: userError } = await supabase
         .from('users')
-        .insert({
+        .upsert({
           auth_id: authData.user.id,
           organization_id: orgData.id,
           email: data.admin_email,
@@ -101,7 +101,7 @@ export default function HospitalRegistrationPage() {
           phone: data.admin_phone,
           role: 'hospital_admin',
           is_active: true
-        })
+        }, { onConflict: 'email', ignoreDuplicates: true })
 
       if (userError) throw userError
 

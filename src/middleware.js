@@ -19,7 +19,8 @@ export async function middleware(req) {
   if (!isPublicPath) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/auth/login'
-    redirectUrl.searchParams.set('redirectTo', pathname)
+    // use `redirect` param name to align with login page usage
+    redirectUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
