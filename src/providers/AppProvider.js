@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
 const AppContext = createContext()
 
@@ -9,6 +9,32 @@ export function AppProvider({ children }) {
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [theme, setTheme] = useState('light')
+
+  useEffect(() => {
+    // Initialize theme from localStorage or media query
+    try {
+      const stored = typeof window !== 'undefined' ? localStorage.getItem('theme') : null
+      const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      const initial = stored || (prefersDark ? 'dark' : 'light')
+      setTheme(initial)
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const root = document.documentElement
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+    try {
+      localStorage.setItem('theme', theme)
+    } catch {}
+  }, [theme])
+
+  const toggleTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'))
 
   const addNotification = (notification) => {
     const id = Date.now()
@@ -40,7 +66,7 @@ export function AppProvider({ children }) {
     setError(message)
     addNotification({
       type: 'error',
-      title: 'خطأ',
+      title: 'Error',
       message
     })
   }
@@ -59,7 +85,9 @@ export function AppProvider({ children }) {
     hideLoading,
     error,
     showError,
-    clearError
+    clearError,
+    theme,
+    toggleTheme
   }
 
   return (

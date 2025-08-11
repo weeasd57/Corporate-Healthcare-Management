@@ -23,8 +23,8 @@ function LoginContent() {
 
   // Schema validation
   const loginSchema = z.object({
-    email: z.string().email('البريد الإلكتروني غير صحيح'),
-    password: z.string().min(1, 'كلمة المرور مطلوبة')
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(1, 'Password is required')
   })
 
   const {
@@ -53,11 +53,11 @@ function LoginContent() {
       
       if (result.error) {
         if (result.error.message.includes('Invalid credentials')) {
-          setError('email', { message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' })
+          setError('email', { message: 'Email or password is incorrect' })
         } else {
           addNotification({
             type: 'error',
-            title: 'خطأ في تسجيل الدخول',
+            title: 'Sign-in error',
             message: result.error.message
           })
         }
@@ -66,8 +66,8 @@ function LoginContent() {
 
       addNotification({
         type: 'success',
-        title: 'تم تسجيل الدخول بنجاح',
-        message: 'مرحباً بك في النظام'
+        title: 'Signed in successfully',
+        message: 'Welcome back'
       })
 
       // Redirect based on user role/type
@@ -78,8 +78,8 @@ function LoginContent() {
       console.error('Login error:', error)
       addNotification({
         type: 'error',
-        title: 'خطأ في الاتصال',
-        message: 'يرجى المحاولة مرة أخرى'
+        title: 'Connection error',
+        message: 'Please try again'
       })
     } finally {
       setIsLoading(false)
@@ -91,7 +91,7 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-950 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
@@ -99,11 +99,11 @@ function LoginContent() {
             <Building2 className="h-12 w-12 text-green-600" />
             <Stethoscope className="h-12 w-12 text-blue-600" />
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            تسجيل الدخول
+          <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Sign in
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            نظام إدارة الصحة للشركات والمستشفيات
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            Health Management System for Companies and Hospitals
           </p>
         </div>
 
@@ -112,7 +112,7 @@ function LoginContent() {
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <Input
-                label="البريد الإلكتروني"
+                label="Email"
                 type="email"
                 autoComplete="email"
                 required
@@ -125,7 +125,7 @@ function LoginContent() {
             <div>
               <div className="relative">
                 <Input
-                  label="كلمة المرور"
+                  label="Password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   required
@@ -155,14 +155,14 @@ function LoginContent() {
                   type="checkbox"
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="mr-2 block text-sm text-gray-900">
-                  تذكرني
+                <label htmlFor="remember-me" className="mr-2 block text-sm text-gray-900 dark:text-gray-200">
+                  Remember me
                 </label>
               </div>
 
               <div className="text-sm">
                 <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
-                  نسيت كلمة المرور؟
+                  Forgot password?
                 </a>
               </div>
             </div>
@@ -174,7 +174,7 @@ function LoginContent() {
                 loading={isLoading}
                 disabled={isLoading}
               >
-                {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+                {isLoading ? 'Signing in...' : 'Sign in'}
                 <ArrowRight className="mr-2 h-4 w-4" />
               </Button>
             </div>
@@ -184,8 +184,8 @@ function LoginContent() {
         {/* Registration Options */}
         <div className="space-y-4">
           <div className="text-center">
-            <p className="text-sm text-gray-600">
-              ليس لديك حساب؟ قم بالتسجيل كـ:
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Don’t have an account? Register as:
             </p>
           </div>
 
@@ -196,7 +196,7 @@ function LoginContent() {
               className="w-full justify-center"
             >
               <Building2 className="ml-2 h-4 w-4 text-green-600" />
-              شركة
+              Company
             </Button>
 
             <Button
@@ -205,7 +205,7 @@ function LoginContent() {
               className="w-full justify-center"
             >
               <Stethoscope className="ml-2 h-4 w-4 text-blue-600" />
-              مستشفى
+              Hospital
             </Button>
           </div>
         </div>

@@ -16,14 +16,14 @@ export function formatDate(date, options = {}) {
     ...options
   }
   
-  return new Date(date).toLocaleDateString('ar-SA', defaultOptions)
+  return new Date(date).toLocaleDateString('en-US', defaultOptions)
 }
 
 // Format date and time
 export function formatDateTime(date) {
   if (!date) return ''
   
-  return new Date(date).toLocaleString('ar-SA', {
+  return new Date(date).toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -34,7 +34,7 @@ export function formatDateTime(date) {
 
 // Format currency
 export function formatCurrency(amount, currency = 'SAR') {
-  return new Intl.NumberFormat('ar-SA', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currency
   }).format(amount)
@@ -61,22 +61,22 @@ export function getStatusColor(status) {
 // Get status text in Arabic
 export function getStatusText(status) {
   const statusTexts = {
-    active: 'نشط',
-    inactive: 'غير نشط',
-    suspended: 'معلق',
-    pending: 'في الانتظار',
-    approved: 'موافق عليه',
-    rejected: 'مرفوض',
-    completed: 'مكتمل',
-    cancelled: 'ملغي',
-    scheduled: 'مجدول',
-    no_show: 'لم يحضر',
-    healthy: 'صحي',
-    needs_attention: 'يحتاج انتباه',
-    critical: 'حرج',
-    passed: 'ناجح',
-    failed: 'فاشل',
-    needs_followup: 'يحتاج متابعة'
+    active: 'Active',
+    inactive: 'Inactive',
+    suspended: 'Suspended',
+    pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    scheduled: 'Scheduled',
+    no_show: 'No show',
+    healthy: 'Healthy',
+    needs_attention: 'Needs attention',
+    critical: 'Critical',
+    passed: 'Passed',
+    failed: 'Failed',
+    needs_followup: 'Needs follow-up'
   }
   
   return statusTexts[status] || status
@@ -85,14 +85,14 @@ export function getStatusText(status) {
 // Get role text in Arabic
 export function getRoleText(role) {
   const roleTexts = {
-    company_admin: 'مدير الشركة',
-    company_hr: 'موارد بشرية',
-    company_manager: 'مدير',
-    hospital_admin: 'مدير المستشفى',
-    doctor: 'طبيب',
-    nurse: 'ممرض',
-    receptionist: 'استقبال',
-    employee: 'موظف'
+    company_admin: 'Company Admin',
+    company_hr: 'HR',
+    company_manager: 'Manager',
+    hospital_admin: 'Hospital Admin',
+    doctor: 'Doctor',
+    nurse: 'Nurse',
+    receptionist: 'Receptionist',
+    employee: 'Employee'
   }
   
   return roleTexts[role] || role
@@ -101,8 +101,8 @@ export function getRoleText(role) {
 // Get organization type text in Arabic
 export function getOrganizationTypeText(type) {
   const typeTexts = {
-    company: 'شركة',
-    hospital: 'مستشفى'
+    company: 'Company',
+    hospital: 'Hospital'
   }
   
   return typeTexts[type] || type

@@ -9,7 +9,7 @@ export default function UnauthorizedPage() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="p-8 text-center">
           {/* Icon */}
@@ -20,14 +20,14 @@ export default function UnauthorizedPage() {
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            غير مصرح بالوصول
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            Access Denied
           </h1>
 
           {/* Message */}
-          <p className="text-gray-600 mb-8">
-            عذراً، ليس لديك صلاحية للوصول إلى هذه الصفحة. 
-            يرجى التواصل مع مدير النظام إذا كنت تعتقد أن هذا خطأ.
+          <p className="text-gray-600 dark:text-gray-300 mb-8">
+            Sorry, you do not have permission to access this page.
+            Please contact your administrator if you believe this is a mistake.
           </p>
 
           {/* Actions */}
@@ -37,7 +37,7 @@ export default function UnauthorizedPage() {
               className="w-full"
             >
               <ArrowLeft className="h-5 w-5 ml-2" />
-              العودة للصفحة السابقة
+              Go Back
             </Button>
 
             <Button
@@ -46,17 +46,17 @@ export default function UnauthorizedPage() {
               className="w-full"
             >
               <Home className="h-5 w-5 ml-2" />
-              العودة للصفحة الرئيسية
+              Back to Home
             </Button>
           </div>
 
           {/* Help */}
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-sm font-medium text-blue-900 mb-2">
-              هل تحتاج مساعدة؟
+          <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-950/40 rounded-lg">
+            <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200 mb-2">
+              Need help?
             </h3>
-            <p className="text-sm text-blue-800">
-              إذا كنت تواجه مشكلة في الوصول، يرجى التواصل مع فريق الدعم الفني.
+            <p className="text-sm text-blue-800 dark:text-blue-300">
+              If you are having trouble accessing the system, please contact support.
             </p>
           </div>
         </Card>
