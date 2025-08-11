@@ -6,7 +6,7 @@ const Select = ({
   options = [], 
   className = '', 
   required = false,
-  placeholder = 'اختر...',
+  placeholder = 'Select...',
   ...props 
 }) => {
   return (

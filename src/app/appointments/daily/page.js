@@ -162,15 +162,15 @@ export default function DailyAppointmentsPage() {
   const getStatusText = (status) => {
     switch (status) {
       case 'confirmed':
-        return 'مؤكد'
+        return 'Confirmed'
       case 'pending':
-        return 'في الانتظار'
+        return 'Pending'
       case 'completed':
-        return 'مكتمل'
+        return 'Completed'
       case 'cancelled':
-        return 'ملغي'
+        return 'Cancelled'
       default:
-        return 'غير محدد'
+        return 'Unknown'
     }
   }
 
@@ -218,13 +218,13 @@ export default function DailyAppointmentsPage() {
     yesterday.setDate(yesterday.getDate() - 1)
 
     if (date.toDateString() === today.toDateString()) {
-      return 'اليوم'
+      return 'Today'
     } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'غداً'
+      return 'Tomorrow'
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'أمس'
+      return 'Yesterday'
     } else {
-      return date.toLocaleDateString('ar-SA', {
+      return date.toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -245,8 +245,8 @@ export default function DailyAppointmentsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">غير مصرح</h1>
-          <p className="text-gray-600">هذه الصفحة متاحة للمستشفيات فقط</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Unauthorized</h1>
+          <p className="text-gray-600">This page is available for hospitals only</p>
         </div>
       </div>
     )
@@ -259,16 +259,16 @@ export default function DailyAppointmentsPage() {
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-              المواعيد اليومية
+              Daily Appointments
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              إدارة ومتابعة مواعيد المرضى اليومية
+              Manage and follow up daily patient appointments
             </p>
           </div>
           <div className="mt-4 flex md:mt-0 md:mr-4">
             <Button>
               <RefreshCw className="h-4 w-4 ml-2" />
-              تحديث
+              Refresh
             </Button>
           </div>
         </div>
@@ -292,7 +292,7 @@ export default function DailyAppointmentsPage() {
                     {getDateDisplay()}
                   </h3>
                   <p className="text-sm text-gray-500">
-                    {new Date(selectedDate).toLocaleDateString('ar-SA')}
+                    {new Date(selectedDate).toLocaleDateString('en-US')}
                   </p>
                 </div>
               </div>
@@ -320,10 +320,10 @@ export default function DailyAppointmentsPage() {
                 className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
                 <option value="all">جميع الحالات</option>
-                <option value="confirmed">مؤكد</option>
-                <option value="pending">في الانتظار</option>
-                <option value="completed">مكتمل</option>
-                <option value="cancelled">ملغي</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
               </select>
             </div>
           </div>
@@ -339,7 +339,7 @@ export default function DailyAppointmentsPage() {
               <div className="mr-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    إجمالي المواعيد
+                    Total Appointments
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
                     {appointments.length}
@@ -357,7 +357,7 @@ export default function DailyAppointmentsPage() {
               <div className="mr-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    مؤكدة
+                    Confirmed
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
                     {appointments.filter(a => a.status === 'confirmed').length}
@@ -375,7 +375,7 @@ export default function DailyAppointmentsPage() {
               <div className="mr-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    في الانتظار
+                    Pending
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
                     {appointments.filter(a => a.status === 'pending').length}
@@ -393,7 +393,7 @@ export default function DailyAppointmentsPage() {
               <div className="mr-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    مكتملة
+                    Completed
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
                     {appointments.filter(a => a.status === 'completed').length}
@@ -409,17 +409,13 @@ export default function DailyAppointmentsPage() {
           {isLoading ? (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-500">جاري تحميل المواعيد...</p>
+              <p className="mt-1 text-gray-500">Loading appointments...</p>
             </div>
           ) : filteredAppointments.length === 0 ? (
             <div className="p-8 text-center">
               <Calendar className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">لا توجد مواعيد</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {statusFilter !== 'all' 
-                  ? 'لا توجد مواعيد تطابق الفلتر المحدد'
-                  : 'لا توجد مواعيد في هذا التاريخ'}
-              </p>
+              <p className="mt-1 text-sm text-gray-500">{statusFilter !== 'all' ? 'No appointments match the selected filter' : 'No appointments on this date'}</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
@@ -451,7 +447,7 @@ export default function DailyAppointmentsPage() {
                               </span>
                             </div>
                             <p className="text-sm text-gray-600 mt-1">
-                              مدة الموعد: {appointment.duration} دقيقة
+                              Duration: {appointment.duration} minutes
                             </p>
                           </div>
                         </div>
@@ -460,7 +456,7 @@ export default function DailyAppointmentsPage() {
                           <div>
                             <div className="flex items-center text-sm text-gray-900">
                               <User className="h-4 w-4 ml-1 text-gray-400" />
-                              <span className="font-medium">المريض:</span>
+                              <span className="font-medium">Patient:</span>
                               <span className="mr-1">{appointment.patient_name}</span>
                             </div>
                             <div className="flex items-center text-sm text-gray-600 mt-1">
@@ -471,16 +467,16 @@ export default function DailyAppointmentsPage() {
 
                           <div>
                             <div className="text-sm text-gray-900">
-                              <span className="font-medium">نوع الفحص:</span> {appointment.appointment_type}
+                              <span className="font-medium">Type:</span> {appointment.appointment_type}
                             </div>
                             <div className="text-sm text-gray-600 mt-1">
-                              <span className="font-medium">القسم:</span> {appointment.department}
+                              <span className="font-medium">Department:</span> {appointment.department}
                             </div>
                           </div>
 
                           <div>
                             <div className="text-sm text-gray-900">
-                              <span className="font-medium">الطبيب:</span> {appointment.doctor}
+                              <span className="font-medium">Doctor:</span> {appointment.doctor}
                             </div>
                             <div className="flex items-center text-sm text-gray-600 mt-1">
                               <Phone className="h-4 w-4 ml-1 text-gray-400" />
@@ -494,7 +490,7 @@ export default function DailyAppointmentsPage() {
                             <div className="flex items-start">
                               <FileText className="h-4 w-4 ml-1 text-gray-400 mt-0.5" />
                               <p className="text-sm text-gray-700">
-                                <span className="font-medium">ملاحظات:</span> {appointment.notes}
+                                <span className="font-medium">Notes:</span> {appointment.notes}
                               </p>
                             </div>
                           </div>
@@ -512,7 +508,7 @@ export default function DailyAppointmentsPage() {
                               className="bg-green-600 hover:bg-green-700"
                             >
                               <Check className="h-4 w-4 ml-1" />
-                              تأكيد
+                              Confirm
                             </Button>
                             <Button
                               size="sm"
@@ -521,7 +517,7 @@ export default function DailyAppointmentsPage() {
                               className="text-red-600 border-red-300 hover:bg-red-50"
                             >
                               <X className="h-4 w-4 ml-1" />
-                              إلغاء
+                              Cancel
                             </Button>
                           </div>
                         )}
@@ -533,18 +529,18 @@ export default function DailyAppointmentsPage() {
                             className="bg-blue-600 hover:bg-blue-700"
                           >
                             <Check className="h-4 w-4 ml-1" />
-                            إكمال
+                            Complete
                           </Button>
                         )}
 
                         <div className="flex space-x-2 space-x-reverse">
                           <Button size="sm" variant="outline">
                             <Eye className="h-4 w-4 ml-1" />
-                            عرض
+                            View
                           </Button>
                           <Button size="sm" variant="outline">
                             <Edit className="h-4 w-4 ml-1" />
-                            تعديل
+                            Edit
                           </Button>
                         </div>
                       </div>

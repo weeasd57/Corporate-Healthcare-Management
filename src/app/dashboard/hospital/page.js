@@ -140,7 +140,7 @@ export default function HospitalDashboard() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">جاري التحميل...</p>
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     )
@@ -156,10 +156,10 @@ export default function HospitalDashboard() {
               <Stethoscope className="h-8 w-8 text-blue-600" />
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">
-                  {organization?.name || 'لوحة تحكم المستشفى'}
+                  {organization?.name || 'Hospital Dashboard'}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  مرحباً {user?.first_name} {user?.last_name}
+                  Welcome {user?.first_name} {user?.last_name}
                 </p>
               </div>
             </div>
@@ -171,7 +171,7 @@ export default function HospitalDashboard() {
                 onClick={() => router.push('/appointments/today')}
               >
                 <Calendar className="h-4 w-4 ml-2" />
-                مواعيد اليوم
+                Today's Appointments
               </Button>
               
               <Button
@@ -179,7 +179,7 @@ export default function HospitalDashboard() {
                 size="sm"
                 onClick={handleLogout}
               >
-                تسجيل الخروج
+                Logout
               </Button>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function HospitalDashboard() {
                 <Stethoscope className="h-6 w-6 text-blue-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">الأطباء</p>
+                <p className="text-sm font-medium text-gray-600">Doctors</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.totalDoctors}</p>
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function HospitalDashboard() {
                 <Users className="h-6 w-6 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">الممرضين</p>
+                <p className="text-sm font-medium text-gray-600">Nurses</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.totalNurses}</p>
               </div>
             </div>
@@ -220,7 +220,7 @@ export default function HospitalDashboard() {
                 <Calendar className="h-6 w-6 text-purple-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">مواعيد اليوم</p>
+                <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.todayAppointments}</p>
               </div>
             </div>
@@ -232,7 +232,7 @@ export default function HospitalDashboard() {
                 <FileText className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">المواعيد المعلقة</p>
+                <p className="text-sm font-medium text-gray-600">Pending Appointments</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.pendingAppointments}</p>
               </div>
             </div>
@@ -244,7 +244,7 @@ export default function HospitalDashboard() {
                 <Building2 className="h-6 w-6 text-indigo-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">التعاقدات النشطة</p>
+                <p className="text-sm font-medium text-gray-600">Active Contracts</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.activeContracts}</p>
               </div>
             </div>
@@ -256,8 +256,8 @@ export default function HospitalDashboard() {
                 <DollarSign className="h-6 w-6 text-emerald-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">الإيرادات الشهرية</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.monthlyRevenue.toLocaleString()} ريال</p>
+                <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.monthlyRevenue.toLocaleString()} SAR</p>
               </div>
             </div>
           </Card>
@@ -268,13 +268,13 @@ export default function HospitalDashboard() {
           {/* Today's Appointments */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">مواعيد اليوم</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Today's Appointments</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/appointments/today')}
               >
-                عرض الكل
+                View All
               </Button>
             </div>
             
@@ -303,7 +303,7 @@ export default function HospitalDashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">لا توجد مواعيد اليوم</p>
+                <p className="text-gray-500 text-center py-4">No appointments today</p>
               )}
             </div>
           </Card>
@@ -311,13 +311,13 @@ export default function HospitalDashboard() {
           {/* Recent Patients */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">آخر المرضى</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Recent Patients</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/patients')}
               >
-                عرض الكل
+                View All
               </Button>
             </div>
             
@@ -335,16 +335,16 @@ export default function HospitalDashboard() {
                         <p className="text-sm font-medium text-gray-900">
                           {patient.first_name} {patient.last_name}
                         </p>
-                        <p className="text-xs text-gray-500">{patient.employee_id || 'غير محدد'}</p>
+                        <p className="text-xs text-gray-500">{patient.employee_id || 'Not specified'}</p>
                       </div>
                     </div>
                     <span className="text-xs text-gray-500">
-                      {patient.organization?.name || 'غير محدد'}
+                      {patient.organization?.name || 'Not specified'}
                     </span>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">لا يوجد مرضى بعد</p>
+                <p className="text-gray-500 text-center py-4">No patients yet</p>
               )}
             </div>
           </Card>
@@ -352,7 +352,7 @@ export default function HospitalDashboard() {
 
         {/* Quick Actions */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">إجراءات سريعة</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button
               variant="outline"
@@ -360,7 +360,7 @@ export default function HospitalDashboard() {
               onClick={() => router.push('/appointments/today')}
             >
               <Calendar className="h-6 w-6 mb-2" />
-              <span>مواعيد اليوم</span>
+              <span>Today's Appointments</span>
             </Button>
             
             <Button
@@ -369,7 +369,7 @@ export default function HospitalDashboard() {
               onClick={() => router.push('/patients/new')}
             >
               <Users className="h-6 w-6 mb-2" />
-              <span>مريض جديد</span>
+              <span>New Patient</span>
             </Button>
             
             <Button
@@ -378,7 +378,7 @@ export default function HospitalDashboard() {
               onClick={() => router.push('/prescriptions/new')}
             >
               <FileText className="h-6 w-6 mb-2" />
-              <span>وصفة طبية</span>
+              <span>Prescription</span>
             </Button>
             
             <Button
@@ -387,7 +387,7 @@ export default function HospitalDashboard() {
               onClick={() => router.push('/invoices/new')}
             >
               <DollarSign className="h-6 w-6 mb-2" />
-              <span>فاتورة جديدة</span>
+              <span>New Invoice</span>
             </Button>
           </div>
         </Card>

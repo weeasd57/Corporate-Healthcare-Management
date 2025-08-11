@@ -15,21 +15,21 @@ import { validateEmail, validatePhone } from '@/lib/utils'
 // Schema validation
 const companySchema = z.object({
   // Organization data
-  name: z.string().min(2, 'اسم الشركة مطلوب (حرفين على الأقل)'),
-  email: z.string().email('البريد الإلكتروني غير صحيح'),
-  phone: z.string().min(10, 'رقم الهاتف غير صحيح'),
-  address: z.string().min(10, 'العنوان مطلوب (10 أحرف على الأقل)'),
-  contact_person: z.string().min(2, 'اسم الشخص المسؤول مطلوب'),
+  name: z.string().min(2, 'Company name is required (at least 2 characters)'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(10, 'Invalid phone number'),
+  address: z.string().min(10, 'Address is required (at least 10 characters)'),
+  contact_person: z.string().min(2, 'Contact person name is required'),
   
   // Admin user data
-  admin_first_name: z.string().min(2, 'الاسم الأول مطلوب'),
-  admin_last_name: z.string().min(2, 'اسم العائلة مطلوب'),
-  admin_email: z.string().email('البريد الإلكتروني غير صحيح'),
-  admin_phone: z.string().min(10, 'رقم الهاتف غير صحيح'),
-  password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
+  admin_first_name: z.string().min(2, 'First name is required'),
+  admin_last_name: z.string().min(2, 'Last name is required'),
+  admin_email: z.string().email('Invalid email address'),
+  admin_phone: z.string().min(10, 'Invalid phone number'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
   confirm_password: z.string()
 }).refine((data) => data.password === data.confirm_password, {
-  message: "كلمات المرور غير متطابقة",
+  message: "Passwords do not match",
   path: ["confirm_password"]
 })
 
@@ -118,14 +118,14 @@ export default function CompanyRegistrationPage() {
       
     } catch (error) {
       console.error('Registration error details:', error);
-      setError(error.message || error.description || 'حدث خطأ غير معروف أثناء التسجيل');
+      setError(error.message || error.description || 'An unknown error occurred during registration');
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         <Card className="p-8">
           {/* Header */}
@@ -133,11 +133,11 @@ export default function CompanyRegistrationPage() {
             <div className="flex justify-center mb-4">
               <Building2 className="h-12 w-12 text-green-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              تسجيل شركة جديدة
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Register a new Company
             </h1>
-            <p className="text-gray-600">
-              قم بإنشاء حساب لشركتك للوصول إلى نظام إدارة الصحة
+            <p className="text-gray-600 dark:text-gray-300">
+              Create a company account to access the health management system
             </p>
           </div>
 
@@ -152,25 +152,25 @@ export default function CompanyRegistrationPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Company Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                معلومات الشركة
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b pb-2">
+                Company Information
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    اسم الشركة *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Company name *
                   </label>
                   <Input
                     {...register('name')}
-                    placeholder="أدخل اسم الشركة"
+                    placeholder="Enter company name"
                     error={errors.name?.message}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    البريد الإلكتروني *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Email *
                   </label>
                   <Input
                     {...register('email')}
@@ -181,8 +181,8 @@ export default function CompanyRegistrationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    رقم الهاتف *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Phone number *
                   </label>
                   <Input
                     {...register('phone')}
@@ -192,24 +192,24 @@ export default function CompanyRegistrationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    الشخص المسؤول *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Contact person *
                   </label>
                   <Input
                     {...register('contact_person')}
-                    placeholder="اسم الشخص المسؤول"
+                    placeholder="Responsible person name"
                     error={errors.contact_person?.message}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  عنوان الشركة *
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Company address *
                 </label>
                 <Input
                   {...register('address')}
-                  placeholder="أدخل العنوان الكامل للشركة"
+                  placeholder="Enter full company address"
                   error={errors.address?.message}
                 />
               </div>
@@ -217,36 +217,36 @@ export default function CompanyRegistrationPage() {
 
             {/* Admin User Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                معلومات المدير المسؤول
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b pb-2">
+                Admin Information
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    الاسم الأول *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    First name *
                   </label>
                   <Input
                     {...register('admin_first_name')}
-                    placeholder="الاسم الأول"
+                    placeholder="First name"
                     error={errors.admin_first_name?.message}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    اسم العائلة *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Last name *
                   </label>
                   <Input
                     {...register('admin_last_name')}
-                    placeholder="اسم العائلة"
+                    placeholder="Last name"
                     error={errors.admin_last_name?.message}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    البريد الإلكتروني *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Email *
                   </label>
                   <Input
                     {...register('admin_email')}
@@ -257,8 +257,8 @@ export default function CompanyRegistrationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    رقم الهاتف *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Phone number *
                   </label>
                   <Input
                     {...register('admin_phone')}
@@ -270,14 +270,14 @@ export default function CompanyRegistrationPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    كلمة المرور *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Password *
                   </label>
                   <div className="relative">
                     <Input
                       {...register('password')}
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="كلمة المرور"
+                      placeholder="Password"
                       error={errors.password?.message}
                     />
                     <button
@@ -291,14 +291,14 @@ export default function CompanyRegistrationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    تأكيد كلمة المرور *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Confirm password *
                   </label>
                   <div className="relative">
                     <Input
                       {...register('confirm_password')}
                       type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="تأكيد كلمة المرور"
+                      placeholder="Confirm password"
                       error={errors.confirm_password?.message}
                     />
                     <button
@@ -321,7 +321,7 @@ export default function CompanyRegistrationPage() {
                 className="flex-1"
                 loading={isLoading}
               >
-                {isLoading ? 'جاري التسجيل...' : 'تسجيل الشركة'}
+                {isLoading ? 'Registering...' : 'Register Company'}
               </Button>
               
               <Button
@@ -331,21 +331,21 @@ export default function CompanyRegistrationPage() {
                 onClick={() => router.push('/auth/login')}
               >
                 <ArrowLeft className="h-5 w-5 ml-2" />
-                العودة لتسجيل الدخول
+                Back to Sign in
               </Button>
             </div>
           </form>
 
           {/* Terms and Privacy */}
-          <div className="mt-8 text-center text-sm text-gray-500">
+          <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
             <p>
-              بالضغط على "تسجيل الشركة" فإنك توافق على{' '}
+              By clicking "Register Company" you agree to the{' '}
               <a href="#" className="text-blue-600 hover:underline">
-                شروط الاستخدام
+                Terms of Service
               </a>{' '}
-              و{' '}
+              and{' '}
               <a href="#" className="text-blue-600 hover:underline">
-                سياسة الخصوصية
+                Privacy Policy
               </a>
             </p>
           </div>

@@ -3,14 +3,14 @@ import { AuthProvider, AppProvider, DataProvider } from '@/providers'
 import Notifications from '@/components/ui/Notifications'
 
 export const metadata = {
-  title: 'تطبيق الشركة والمستشفى',
-  description: 'نظام إدارة الصحة للشركات والمستشفيات',
+  title: 'Company & Hospital App',
+  description: 'Health management system for companies and hospitals',
 }
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ar" dir="rtl">
-      <body className="antialiased">
+    <html lang="en" dir="ltr">
+      <body className="antialiased bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">
         <AuthProvider>
           <AppProvider>
             <DataProvider>

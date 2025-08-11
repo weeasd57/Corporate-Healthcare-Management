@@ -11,7 +11,7 @@ export const Card = ({
   return (
     <div
       className={cn(
-        'rounded-lg border border-gray-200 bg-white shadow-sm',
+        'rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900',
         className
       )}
       {...props}
@@ -20,10 +20,10 @@ export const Card = ({
         <div className="flex items-center justify-between p-6 pb-0">
           <div>
             {title && (
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
             )}
             {subtitle && (
-              <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
             )}
           </div>
           {actions && (

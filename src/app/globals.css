@@ -4,12 +4,11 @@
 
 @layer base {
   html {
-    direction: rtl;
+    /* default LTR; allow dark mode via class on html/body */
   }
   
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    direction: rtl;
   }
 }
 

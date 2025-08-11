@@ -15,7 +15,7 @@ export default function HomePage() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
           <div className="flex justify-center mb-8">
@@ -25,12 +25,12 @@ export default function HomePage() {
             </div>
           </div>
           
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            نظام إدارة الصحة للشركات والمستشفيات
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            Health Management System for Companies and Hospitals
           </h1>
           
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            منصة متكاملة لإدارة الصحة والمواعيد الطبية بين الشركات والمستشفيات
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+            A unified platform to manage health records and medical appointments between companies and hospitals.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -38,7 +38,7 @@ export default function HomePage() {
               size="lg"
               onClick={() => router.push('/auth/register/company')}
             >
-              تسجيل شركة جديدة
+              Register a Company
               <ArrowRight className="h-5 w-5 mr-2" />
             </Button>
             
@@ -47,7 +47,7 @@ export default function HomePage() {
               size="lg"
               onClick={() => router.push('/auth/register/hospital')}
             >
-              تسجيل مستشفى جديد
+              Register a Hospital
               <ArrowRight className="h-5 w-5 mr-2" />
             </Button>
           </div>
@@ -57,7 +57,7 @@ export default function HomePage() {
               variant="ghost"
               onClick={() => router.push('/auth/login')}
             >
-              لديك حساب بالفعل؟ تسجيل الدخول
+              Already have an account? Sign in
             </Button>
           </div>
         </div>

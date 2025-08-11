@@ -24,10 +24,11 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/lib/supabase'
+import { useApp } from '@/providers/AppProvider'
 
 const Layout = ({ 
   children, 
-  title = 'تطبيق الشركة والمستشفى',
+  title = 'Company & Hospital App',
   user = null,
   organization = null 
 }) => {
@@ -35,6 +36,7 @@ const Layout = ({
   const router = useRouter()
   const pathname = usePathname()
   const { signOut } = useAuth()
+  const { theme, toggleTheme } = useApp()
 
   const isHospital = organization?.type === 'hospital'
   const isCompany = organization?.type === 'company'
@@ -42,31 +44,31 @@ const Layout = ({
   // Navigation items based on organization type
   const getNavigationItems = () => {
     const baseItems = [
-      { name: 'الرئيسية', href: isHospital ? '/dashboard/hospital' : '/dashboard/company', icon: Home },
+      { name: 'Home', href: isHospital ? '/dashboard/hospital' : '/dashboard/company', icon: Home },
     ]
 
     if (isCompany) {
       return [
         ...baseItems,
-        { name: 'الموظفين', href: '/employees', icon: Users },
-        { name: 'إضافة موظف', href: '/employees/add', icon: UserPlus },
-        { name: 'المواعيد', href: '/appointments', icon: Calendar },
-        { name: 'السجلات الطبية', href: '/medical-records', icon: FileHeart },
-        { name: 'الإجازات المرضية', href: '/sick-leaves', icon: Heart },
-        { name: 'الفحوصات', href: '/checkups', icon: ClipboardList },
-        { name: 'التقارير', href: '/reports', icon: BarChart3 },
-        { name: 'الإعدادات', href: '/settings', icon: Settings },
+        { name: 'Employees', href: '/employees', icon: Users },
+        { name: 'Add Employee', href: '/employees/add', icon: UserPlus },
+        { name: 'Appointments', href: '/appointments', icon: Calendar },
+        { name: 'Medical Records', href: '/medical-records', icon: FileHeart },
+        { name: 'Sick Leaves', href: '/sick-leaves', icon: Heart },
+        { name: 'Checkups', href: '/checkups', icon: ClipboardList },
+        { name: 'Reports', href: '/reports', icon: BarChart3 },
+        { name: 'Settings', href: '/settings', icon: Settings },
       ]
     } else if (isHospital) {
       return [
         ...baseItems,
-        { name: 'الشركات العميلة', href: '/clients', icon: Building2 },
-        { name: 'المواعيد اليومية', href: '/appointments/daily', icon: Calendar },
-        { name: 'الملفات الطبية', href: '/medical-files', icon: FileText },
-                 { name: 'الأدوية والوصفات', href: '/pharmacy', icon: Pill },
-        { name: 'الفوترة', href: '/billing', icon: DollarSign },
-        { name: 'التقارير الطبية', href: '/reports/medical', icon: BarChart3 },
-        { name: 'الإعدادات', href: '/settings', icon: Settings },
+        { name: 'Client Companies', href: '/clients', icon: Building2 },
+        { name: 'Daily Appointments', href: '/appointments/daily', icon: Calendar },
+        { name: 'Medical Files', href: '/medical-files', icon: FileText },
+                 { name: 'Pharmacy', href: '/pharmacy', icon: Pill },
+        { name: 'Billing', href: '/billing', icon: DollarSign },
+        { name: 'Medical Reports', href: '/reports/medical', icon: BarChart3 },
+        { name: 'Settings', href: '/settings', icon: Settings },
       ]
     }
 
@@ -80,7 +82,7 @@ const Layout = ({
       await signOut()
       router.push('/auth/login')
     } catch (error) {
-      console.error('خطأ في تسجيل الخروج:', error)
+      console.error('Logout error:', error)
     }
   }
 
@@ -111,28 +113,28 @@ const Layout = ({
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Mobile sidebar */}
       <div className={cn(
         'fixed inset-0 z-50 lg:hidden',
         sidebarOpen ? 'block' : 'hidden'
       )}>
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed inset-y-0 right-0 flex w-full max-w-xs flex-col bg-white shadow-xl">
-          <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
+        <div className="fixed inset-0 bg-gray-600/75" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-y-0 right-0 flex w-full max-w-xs flex-col bg-white dark:bg-gray-900 shadow-xl">
+          <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800">
             <div className="flex items-center">
               {isHospital ? (
                 <Stethoscope className="h-6 w-6 text-blue-600" />
               ) : (
                 <Building2 className="h-6 w-6 text-green-600" />
               )}
-              <h1 className="mr-2 text-sm font-semibold text-gray-900 truncate">
+              <h1 className="mr-2 text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                 {organization?.name || title}
               </h1>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="rounded-md p-2 text-gray-400 hover:bg-gray-100"
+              className="rounded-md p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <X className="h-6 w-6" />
             </button>
@@ -140,18 +142,18 @@ const Layout = ({
 
           {/* Organization and User info */}
           {(organization || user) && (
-            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
               {organization && (
                 <div className="mb-2">
-                  <p className="text-sm font-medium text-gray-900 truncate">{organization.name}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{organization.name}</p>
                   <p className="text-xs text-gray-500">
-                    {isHospital ? 'مستشفى' : 'شركة'}
+                    {isHospital ? 'Hospital' : 'Company'}
                   </p>
                 </div>
               )}
               {user && (
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {user.first_name} {user.last_name}
                   </p>
                   <p className="text-xs text-gray-500">{user.role}</p>
@@ -167,13 +169,13 @@ const Layout = ({
           </nav>
 
           {/* Mobile Logout */}
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-gray-200 dark:border-gray-800 p-4">
             <button 
               onClick={handleLogout}
-              className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               <LogOut className="ml-3 h-5 w-5" />
-              تسجيل الخروج
+              Logout
             </button>
           </div>
         </div>
@@ -181,15 +183,15 @@ const Layout = ({
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:right-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white border-l border-gray-200 shadow-lg">
-          <div className="flex h-16 items-center px-4 border-b border-gray-200">
+        <div className="flex flex-col flex-grow bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-lg">
+          <div className="flex h-16 items-center px-4 border-b border-gray-200 dark:border-gray-800">
             <div className="flex items-center w-full">
               {isHospital ? (
                 <Stethoscope className="h-8 w-8 text-blue-600" />
               ) : (
                 <Building2 className="h-8 w-8 text-green-600" />
               )}
-              <h1 className="mr-3 text-lg font-semibold text-gray-900 truncate">
+              <h1 className="mr-3 text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                 {organization?.name || title}
               </h1>
             </div>
@@ -197,10 +199,10 @@ const Layout = ({
           
           {/* Organization and User info */}
           {(organization || user) && (
-            <div className="px-4 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
               {organization && (
                 <div className="mb-3">
-                  <p className="text-sm font-medium text-gray-900 truncate">{organization.name}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{organization.name}</p>
                   <div className="flex items-center mt-1">
                     {isHospital ? (
                       <Hospital className="h-4 w-4 text-blue-500 ml-1" />
@@ -208,14 +210,14 @@ const Layout = ({
                       <Building2 className="h-4 w-4 text-green-500 ml-1" />
                     )}
                     <p className="text-xs text-gray-500">
-                      {isHospital ? 'مستشفى' : 'شركة'}
+                      {isHospital ? 'Hospital' : 'Company'}
                     </p>
                   </div>
                 </div>
               )}
               {user && (
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {user.first_name} {user.last_name}
                   </p>
                   <div className="flex items-center mt-1">
@@ -234,13 +236,13 @@ const Layout = ({
           </nav>
 
           {/* Desktop Logout */}
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-gray-200 dark:border-gray-800 p-4">
             <button 
               onClick={handleLogout}
-              className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+              className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-700 transition-colors dark:text-gray-300 dark:hover:bg-gray-800"
             >
               <LogOut className="ml-3 h-5 w-5 group-hover:text-red-700" />
-              تسجيل الخروج
+              Logout
             </button>
           </div>
         </div>
@@ -249,10 +251,10 @@ const Layout = ({
       {/* Main content */}
       <div className="lg:pr-72">
         {/* Top bar */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 dark:bg-gray-900 dark:border-gray-800">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+            className="-m-2.5 p-2.5 text-gray-700 lg:hidden dark:text-gray-300"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="h-6 w-6" />
@@ -262,21 +264,30 @@ const Layout = ({
             <div className="flex flex-1">
               {/* Breadcrumb or page title can go here */}
               <div className="flex items-center">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {navigation.find(item => isActive(item.href))?.name || 'الصفحة الرئيسية'}
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {navigation.find(item => isActive(item.href))?.name || 'Home'}
                 </h2>
               </div>
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
               {/* Notifications */}
-              <button className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500">
+              <button className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 dark:bg-gray-900">
                 <Bell className="h-6 w-6" />
+              </button>
+
+              {/* Theme toggle */}
+              <button
+                onClick={toggleTheme}
+                className="rounded-md px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? 'Light' : 'Dark'}
               </button>
               
               {/* Quick stats or info */}
               {organization && (
-                <div className="hidden sm:flex items-center text-sm text-gray-500">
-                  <span className="ml-2">{isHospital ? 'مستشفى' : 'شركة'}</span>
+                <div className="hidden sm:flex items-center text-sm text-gray-500 dark:text-gray-400">
+                  <span className="ml-2">{isHospital ? 'Hospital' : 'Company'}</span>
                   <span>{organization.name}</span>
                 </div>
               )}
