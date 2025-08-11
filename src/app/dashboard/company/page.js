@@ -71,7 +71,7 @@ export default function CompanyDashboard() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">جاري التحميل...</p>
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     )
@@ -87,10 +87,10 @@ export default function CompanyDashboard() {
               <Building2 className="h-8 w-8 text-green-600" />
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">
-                  {organization?.name || 'لوحة تحكم الشركة'}
+                  {organization?.name || 'Company Dashboard'}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  مرحباً {userData?.first_name} {userData?.last_name}
+                  Welcome {userData?.first_name} {userData?.last_name}
                 </p>
               </div>
             </div>
@@ -102,7 +102,7 @@ export default function CompanyDashboard() {
                 onClick={() => router.push('/employees/add')}
               >
                 <Plus className="h-4 w-4 ml-2" />
-                إضافة موظف
+                Add Employee
               </Button>
               
               <Button
@@ -110,7 +110,7 @@ export default function CompanyDashboard() {
                 size="sm"
                 onClick={handleLogout}
               >
-                تسجيل الخروج
+                Logout
               </Button>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function CompanyDashboard() {
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي الموظفين</p>
+                <p className="text-sm font-medium text-gray-600">Total Employees</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.totalEmployees}</p>
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function CompanyDashboard() {
                 <TrendingUp className="h-6 w-6 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">الموظفين النشطين</p>
+                <p className="text-sm font-medium text-gray-600">Active Employees</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.activeEmployees}</p>
               </div>
             </div>
@@ -151,7 +151,7 @@ export default function CompanyDashboard() {
                 <Calendar className="h-6 w-6 text-purple-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">المواعيد المعلقة</p>
+                <p className="text-sm font-medium text-gray-600">Pending Appointments</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.pendingAppointments}</p>
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function CompanyDashboard() {
                 <FileText className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">الإجازات المعلقة</p>
+                <p className="text-sm font-medium text-gray-600">Pending Sick Leaves</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.pendingSickLeaves}</p>
               </div>
             </div>
@@ -175,7 +175,7 @@ export default function CompanyDashboard() {
                 <Stethoscope className="h-6 w-6 text-red-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">الفحوصات القادمة</p>
+                <p className="text-sm font-medium text-gray-600">Upcoming Checkups</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.upcomingCheckups}</p>
               </div>
             </div>
@@ -187,7 +187,7 @@ export default function CompanyDashboard() {
                 <Building2 className="h-6 w-6 text-indigo-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">التعاقدات النشطة</p>
+                <p className="text-sm font-medium text-gray-600">Active Contracts</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.totalContracts}</p>
               </div>
             </div>
@@ -199,13 +199,13 @@ export default function CompanyDashboard() {
           {/* Recent Employees */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">آخر الموظفين</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Recent Employees</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/employees')}
               >
-                عرض الكل
+                View All
               </Button>
             </div>
             
@@ -223,16 +223,16 @@ export default function CompanyDashboard() {
                         <p className="text-sm font-medium text-gray-900">
                           {employee.first_name} {employee.last_name}
                         </p>
-                        <p className="text-xs text-gray-500">{employee.department || 'غير محدد'}</p>
+                        <p className="text-xs text-gray-500">{employee.department || 'Not specified'}</p>
                       </div>
                     </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${employee.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {employee.is_active ? 'نشط' : 'غير نشط'}
+                      {employee.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">لا يوجد موظفين بعد</p>
+                <p className="text-gray-500 text-center py-4">No employees yet</p>
               )}
             </div>
           </Card>
@@ -240,13 +240,13 @@ export default function CompanyDashboard() {
           {/* Upcoming Appointments */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">المواعيد القادمة</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Upcoming Appointments</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/appointments')}
               >
-                عرض الكل
+                View All
               </Button>
             </div>
             
@@ -273,7 +273,7 @@ export default function CompanyDashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">لا توجد مواعيد قادمة</p>
+                <p className="text-gray-500 text-center py-4">No upcoming appointments</p>
               )}
             </div>
           </Card>
@@ -281,7 +281,7 @@ export default function CompanyDashboard() {
 
         {/* Quick Actions */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">إجراءات سريعة</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button
               variant="outline"
@@ -289,7 +289,7 @@ export default function CompanyDashboard() {
               onClick={() => router.push('/employees/add')}
             >
               <Users className="h-6 w-6 mb-2" />
-              <span>إضافة موظف</span>
+              <span>Add Employee</span>
             </Button>
             
             <Button
@@ -298,7 +298,7 @@ export default function CompanyDashboard() {
               onClick={() => router.push('/appointments/book')}
             >
               <Calendar className="h-6 w-6 mb-2" />
-              <span>حجز موعد</span>
+              <span>Book Appointment</span>
             </Button>
             
             <Button
@@ -307,7 +307,7 @@ export default function CompanyDashboard() {
               onClick={() => router.push('/checkups/schedule')}
             >
               <Stethoscope className="h-6 w-6 mb-2" />
-              <span>جدولة فحص</span>
+              <span>Schedule Checkup</span>
             </Button>
             
             <Button
@@ -316,7 +316,7 @@ export default function CompanyDashboard() {
               onClick={() => router.push('/reports')}
             >
               <FileText className="h-6 w-6 mb-2" />
-              <span>التقارير</span>
+              <span>Reports</span>
             </Button>
           </div>
         </Card>

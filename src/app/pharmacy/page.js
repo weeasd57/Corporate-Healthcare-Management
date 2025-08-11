@@ -180,13 +180,13 @@ export default function PharmacyPage() {
   const getStockStatusText = (status) => {
     switch (status) {
       case 'out_of_stock':
-        return 'نفدت الكمية'
+        return 'Out of stock'
       case 'low_stock':
-        return 'كمية قليلة'
+        return 'Low stock'
       case 'high_stock':
-        return 'كمية عالية'
+        return 'High stock'
       default:
-        return 'متوفر'
+        return 'Available'
     }
   }
 
@@ -206,13 +206,13 @@ export default function PharmacyPage() {
   const getPrescriptionStatusText = (status) => {
     switch (status) {
       case 'pending':
-        return 'في الانتظار'
+        return 'Pending'
       case 'dispensed':
-        return 'تم صرفها'
+        return 'Dispensed'
       case 'cancelled':
-        return 'ملغية'
+        return 'Cancelled'
       default:
-        return 'غير محدد'
+        return 'Unknown'
     }
   }
 
@@ -247,8 +247,8 @@ export default function PharmacyPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">غير مصرح</h1>
-          <p className="text-gray-600">هذه الصفحة متاحة للمستشفيات فقط</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Unauthorized</h1>
+          <p className="text-gray-600">This page is available for hospitals only</p>
         </div>
       </div>
     )
@@ -261,20 +261,20 @@ export default function PharmacyPage() {
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-              إدارة الصيدلية
+              Pharmacy Management
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              إدارة مخزون الأدوية والوصفات الطبية
+              Manage medicine inventory and prescriptions
             </p>
           </div>
           <div className="mt-4 flex md:mt-0 md:mr-4 space-x-3 space-x-reverse">
             <Button>
               <Plus className="h-4 w-4 ml-2" />
-              إضافة دواء
+              Add Medicine
             </Button>
             <Button variant="outline">
               <FileText className="h-4 w-4 ml-2" />
-              وصفة جديدة
+              New Prescription
             </Button>
           </div>
         </div>
@@ -292,7 +292,7 @@ export default function PharmacyPage() {
               )}
             >
               <Package className="h-4 w-4 ml-2 inline" />
-              مخزون الأدوية
+              Inventory
             </button>
             <button
               onClick={() => setActiveTab('prescriptions')}
@@ -304,7 +304,7 @@ export default function PharmacyPage() {
               )}
             >
               <FileText className="h-4 w-4 ml-2 inline" />
-              الوصفات الطبية
+              Prescriptions
             </button>
             <button
               onClick={() => setActiveTab('reports')}
@@ -316,7 +316,7 @@ export default function PharmacyPage() {
               )}
             >
               <BarChart3 className="h-4 w-4 ml-2 inline" />
-              التقارير
+              Reports
             </button>
           </nav>
         </div>
@@ -333,7 +333,7 @@ export default function PharmacyPage() {
                   <div className="mr-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        إجمالي الأدوية
+                        Total Medicines
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
                         {medicines.length}
@@ -351,7 +351,7 @@ export default function PharmacyPage() {
                   <div className="mr-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        كمية قليلة
+                        Low Stock
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
                         {medicines.filter(m => getStockStatus(m) === 'low_stock').length}
@@ -369,7 +369,7 @@ export default function PharmacyPage() {
                   <div className="mr-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        نفدت الكمية
+                        Out of Stock
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
                         {medicines.filter(m => getStockStatus(m) === 'out_of_stock').length}
@@ -387,7 +387,7 @@ export default function PharmacyPage() {
                   <div className="mr-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        قريبة الانتهاء
+                        Expiring Soon
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
                         {medicines.filter(m => {
@@ -408,13 +408,13 @@ export default function PharmacyPage() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    البحث
+                    Search
                   </label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       type="text"
-                      placeholder="ابحث بالاسم أو المادة الفعالة..."
+                      placeholder="Search by name or active ingredient..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -424,23 +424,23 @@ export default function PharmacyPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    حالة المخزون
+                    Stock Status
                   </label>
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   >
-                    <option value="all">جميع الحالات</option>
-                    <option value="low_stock">كمية قليلة</option>
-                    <option value="out_of_stock">نفدت الكمية</option>
+                    <option value="all">All Statuses</option>
+                    <option value="low_stock">Low Stock</option>
+                    <option value="out_of_stock">Out of Stock</option>
                   </select>
                 </div>
 
                 <div className="flex items-end">
                   <Button variant="outline" className="w-full">
                     <Filter className="h-4 w-4 ml-2" />
-                    فلترة متقدمة
+                    Advanced Filter
                   </Button>
                 </div>
               </div>
@@ -451,13 +451,13 @@ export default function PharmacyPage() {
               {isLoading ? (
                 <div className="p-8 text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-4 text-gray-500">جاري تحميل الأدوية...</p>
+                  <p className="mt-4 text-gray-500">Loading medicines...</p>
                 </div>
                            ) : filteredMedicines.length === 0 ? (
                <div className="p-8 text-center">
                  <Pill className="mx-auto h-12 w-12 text-gray-400" />
-                 <h3 className="mt-2 text-sm font-medium text-gray-900">لا توجد أدوية</h3>
-                 <p className="mt-1 text-sm text-gray-500">لم يتم العثور على أدوية تطابق معايير البحث</p>
+                 <h3 className="mt-2 text-sm font-medium text-gray-900">No Medicines Found</h3>
+                 <p className="mt-1 text-sm text-gray-500">No medicines match your search criteria</p>
                </div>
               ) : (
                 <ul className="divide-y divide-gray-200">
@@ -494,22 +494,22 @@ export default function PharmacyPage() {
 
                               <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-500">
                                 <div>
-                                  <span className="font-medium">الكمية:</span> {medicine.quantity}
+                                  <span className="font-medium">Quantity:</span> {medicine.quantity}
                                 </div>
                                 <div>
-                                  <span className="font-medium">السعر:</span> {medicine.unit_price} ريال
+                                  <span className="font-medium">Price:</span> {medicine.unit_price} SAR
                                 </div>
                                 <div>
-                                  <span className="font-medium">انتهاء الصلاحية:</span> {medicine.expiry_date}
+                                  <span className="font-medium">Expiry Date:</span> {medicine.expiry_date}
                                 </div>
                                 <div>
-                                  <span className="font-medium">الموقع:</span> {medicine.storage_location}
+                                  <span className="font-medium">Location:</span> {medicine.storage_location}
                                 </div>
                               </div>
 
                               {medicine.notes && (
                                 <div className="mt-2 text-sm text-gray-600">
-                                  <span className="font-medium">ملاحظات:</span> {medicine.notes}
+                                  <span className="font-medium">Notes:</span> {medicine.notes}
                                 </div>
                               )}
                             </div>
@@ -518,15 +518,15 @@ export default function PharmacyPage() {
                           <div className="mr-4 flex-shrink-0 flex space-x-2 space-x-reverse">
                             <Button variant="outline" size="sm">
                               <Eye className="h-4 w-4 ml-1" />
-                              عرض
+                              View
                             </Button>
                             <Button variant="outline" size="sm">
                               <Edit className="h-4 w-4 ml-1" />
-                              تعديل
+                              Edit
                             </Button>
                             <Button variant="outline" size="sm">
                               <ShoppingCart className="h-4 w-4 ml-1" />
-                              طلب
+                              Order
                             </Button>
                           </div>
                         </div>
@@ -551,7 +551,7 @@ export default function PharmacyPage() {
                   <div className="mr-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        إجمالي الوصفات
+                        Total Prescriptions
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
                         {prescriptions.length}
@@ -569,7 +569,7 @@ export default function PharmacyPage() {
                   <div className="mr-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        تم صرفها
+                        Dispensed
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
                         {prescriptions.filter(p => p.status === 'dispensed').length}
@@ -587,7 +587,7 @@ export default function PharmacyPage() {
                   <div className="mr-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        في الانتظار
+                        Pending
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
                         {prescriptions.filter(p => p.status === 'pending').length}
@@ -603,13 +603,13 @@ export default function PharmacyPage() {
               {isLoading ? (
                 <div className="p-8 text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-4 text-gray-500">جاري تحميل الوصفات...</p>
+                  <p className="mt-4 text-gray-500">Loading prescriptions...</p>
                 </div>
               ) : filteredPrescriptions.length === 0 ? (
                 <div className="p-8 text-center">
                   <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">لا توجد وصفات</h3>
-                  <p className="mt-1 text-sm text-gray-500">لم يتم العثور على وصفات تطابق معايير البحث</p>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No Prescriptions Found</h3>
+                  <p className="mt-1 text-sm text-gray-500">No prescriptions match your search criteria</p>
                 </div>
               ) : (
                 <ul className="divide-y divide-gray-200">
@@ -625,7 +625,7 @@ export default function PharmacyPage() {
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-lg font-medium text-gray-900">
-                                    وصفة رقم #{prescription.id}
+                                    Prescription #{prescription.id}
                                   </p>
                                   <div className="flex items-center mt-1">
                                     <User className="h-4 w-4 ml-1 text-gray-400" />
@@ -649,15 +649,15 @@ export default function PharmacyPage() {
 
                               <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-500">
                                 <div>
-                                  <span className="font-medium">الطبيب:</span> {prescription.doctor_name}
+                                  <span className="font-medium">Doctor:</span> {prescription.doctor_name}
                                 </div>
                                 <div>
-                                  <span className="font-medium">إجمالي التكلفة:</span> {prescription.total_cost} ريال
+                                  <span className="font-medium">Total Cost:</span> {prescription.total_cost} SAR
                                 </div>
                               </div>
 
                               <div className="mt-3">
-                                <p className="text-sm font-medium text-gray-700 mb-2">الأدوية المطلوبة:</p>
+                                <p className="text-sm font-medium text-gray-700 mb-2">Required Medicines:</p>
                                 <div className="space-y-1">
                                   {prescription.medicines.map((med, index) => (
                                     <div key={index} className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
@@ -672,7 +672,7 @@ export default function PharmacyPage() {
 
                               {prescription.notes && (
                                 <div className="mt-2 text-sm text-gray-600">
-                                  <span className="font-medium">ملاحظات:</span> {prescription.notes}
+                                  <span className="font-medium">Notes:</span> {prescription.notes}
                                 </div>
                               )}
                             </div>
@@ -682,17 +682,17 @@ export default function PharmacyPage() {
                                                          {prescription.status === 'pending' && (
                                <Button size="sm" className="bg-green-600 hover:bg-green-700">
                                  <Pill className="h-4 w-4 ml-1" />
-                                 صرف الأدوية
+                                 Dispense Medicines
                                </Button>
                              )}
                             <div className="flex space-x-2 space-x-reverse">
                               <Button variant="outline" size="sm">
                                 <Eye className="h-4 w-4 ml-1" />
-                                عرض
+                                View
                               </Button>
                               <Button variant="outline" size="sm">
                                 <Edit className="h-4 w-4 ml-1" />
-                                تعديل
+                                Edit
                               </Button>
                             </div>
                           </div>
@@ -709,9 +709,9 @@ export default function PharmacyPage() {
         {activeTab === 'reports' && (
           <div className="text-center py-12">
             <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">التقارير قيد التطوير</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">Reports Under Development</h3>
             <p className="mt-1 text-sm text-gray-500">
-              ستتوفر تقارير مفصلة عن استهلاك الأدوية والمبيعات قريباً
+              Detailed reports on medicine consumption and sales will be available soon
             </p>
           </div>
         )}
