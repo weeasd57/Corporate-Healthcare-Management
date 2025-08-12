@@ -68,19 +68,19 @@ export default function CompanyDashboard() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white dark:bg-black">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-black shadow-sm border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4 space-x-reverse">
@@ -89,7 +89,7 @@ export default function CompanyDashboard() {
                 <h1 className="text-xl font-semibold text-gray-900">
                   {organization?.name || 'Company Dashboard'}
                 </h1>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Welcome {userData?.first_name} {userData?.last_name}
                 </p>
               </div>
@@ -127,8 +127,8 @@ export default function CompanyDashboard() {
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">Total Employees</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalEmployees}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Employees</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalEmployees}</p>
               </div>
             </div>
           </Card>
@@ -139,8 +139,8 @@ export default function CompanyDashboard() {
                 <TrendingUp className="h-6 w-6 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">Active Employees</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activeEmployees}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Employees</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.activeEmployees}</p>
               </div>
             </div>
           </Card>
@@ -151,8 +151,8 @@ export default function CompanyDashboard() {
                 <Calendar className="h-6 w-6 text-purple-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">Pending Appointments</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.pendingAppointments}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Pending Appointments</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.pendingAppointments}</p>
               </div>
             </div>
           </Card>
@@ -163,8 +163,8 @@ export default function CompanyDashboard() {
                 <FileText className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">Pending Sick Leaves</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.pendingSickLeaves}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Pending Sick Leaves</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.pendingSickLeaves}</p>
               </div>
             </div>
           </Card>
@@ -175,8 +175,8 @@ export default function CompanyDashboard() {
                 <Stethoscope className="h-6 w-6 text-red-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">Upcoming Checkups</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.upcomingCheckups}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Upcoming Checkups</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.upcomingCheckups}</p>
               </div>
             </div>
           </Card>
@@ -187,8 +187,8 @@ export default function CompanyDashboard() {
                 <Building2 className="h-6 w-6 text-indigo-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">Active Contracts</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalContracts}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Contracts</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalContracts}</p>
               </div>
             </div>
           </Card>
@@ -199,7 +199,7 @@ export default function CompanyDashboard() {
           {/* Recent Employees */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Recent Employees</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Employees</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -212,7 +212,7 @@ export default function CompanyDashboard() {
             <div className="space-y-3">
               {recentEmployees.length > 0 ? (
                 recentEmployees.map((employee) => (
-                  <div key={employee.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={employee.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/60 rounded-lg">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-blue-600">
@@ -220,10 +220,10 @@ export default function CompanyDashboard() {
                         </span>
                       </div>
                       <div className="mr-3">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {employee.first_name} {employee.last_name}
                         </p>
-                        <p className="text-xs text-gray-500">{employee.department || 'Not specified'}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{employee.department || 'Not specified'}</p>
                       </div>
                     </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${employee.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -232,7 +232,7 @@ export default function CompanyDashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">No employees yet</p>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">No employees yet</p>
               )}
             </div>
           </Card>
@@ -240,7 +240,7 @@ export default function CompanyDashboard() {
           {/* Upcoming Appointments */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Upcoming Appointments</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Upcoming Appointments</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -253,16 +253,16 @@ export default function CompanyDashboard() {
             <div className="space-y-3">
               {upcomingAppointments.length > 0 ? (
                 upcomingAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/60 rounded-lg">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                         <Calendar className="h-5 w-5 text-purple-600" />
                       </div>
                       <div className="mr-3">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {appointment.employee?.first_name} {appointment.employee?.last_name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {formatDate(appointment.appointment_date)}
                         </p>
                       </div>
@@ -273,7 +273,7 @@ export default function CompanyDashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">No upcoming appointments</p>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">No upcoming appointments</p>
               )}
             </div>
           </Card>
@@ -281,7 +281,7 @@ export default function CompanyDashboard() {
 
         {/* Quick Actions */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button
               variant="outline"

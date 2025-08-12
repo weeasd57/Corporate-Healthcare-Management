@@ -126,19 +126,19 @@ export default function HospitalDashboard() {
   // Show loading spinner if auth is still loading or dashboard data is loading
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard data...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading dashboard data...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white dark:bg-black">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-black shadow-sm border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4 space-x-reverse">
@@ -147,7 +147,7 @@ export default function HospitalDashboard() {
                 <h1 className="text-xl font-semibold text-gray-900">
                   {organization?.name || 'Hospital Dashboard'}
                 </h1>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                                      Welcome {userData?.first_name} {userData?.last_name}
                 </p>
               </div>
@@ -270,7 +270,7 @@ export default function HospitalDashboard() {
             <div className="space-y-3">
               {todayAppointments.length > 0 ? (
                 todayAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/60 rounded-lg">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-purple-600">
@@ -278,10 +278,10 @@ export default function HospitalDashboard() {
                         </span>
                       </div>
                       <div className="mr-3">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {appointment.employee?.first_name} {appointment.employee?.last_name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {formatDate(appointment.appointment_date, { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
@@ -292,7 +292,7 @@ export default function HospitalDashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">No appointments today</p>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">No appointments today</p>
               )}
             </div>
           </Card>
@@ -313,7 +313,7 @@ export default function HospitalDashboard() {
             <div className="space-y-3">
               {recentPatients.length > 0 ? (
                 recentPatients.map((patient) => (
-                  <div key={patient.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={patient.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/60 rounded-lg">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-blue-600">
@@ -321,10 +321,10 @@ export default function HospitalDashboard() {
                         </span>
                       </div>
                       <div className="mr-3">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {patient.first_name} {patient.last_name}
                         </p>
-                        <p className="text-xs text-gray-500">{patient.employee_id || 'Not specified'}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{patient.employee_id || 'Not specified'}</p>
                       </div>
                     </div>
                     <span className="text-xs text-gray-500">
@@ -333,7 +333,7 @@ export default function HospitalDashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">No patients yet</p>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">No patients yet</p>
               )}
             </div>
           </Card>

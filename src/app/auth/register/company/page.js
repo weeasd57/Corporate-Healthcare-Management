@@ -40,13 +40,30 @@ export default function CompanyRegistrationPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
 
+  const isDev = process.env.NODE_ENV !== 'production'
+  const ts = typeof window !== 'undefined' ? Math.floor(Date.now() / 1000) : 0
+  const defaultValues = isDev ? {
+    name: 'Acme Corp',
+    email: `company+${ts}@example.com`,
+    phone: '0550000000',
+    address: '123 Test St, Test City',
+    contact_person: 'John Manager',
+    admin_first_name: 'John',
+    admin_last_name: 'Doe',
+    admin_email: `admin+${ts}@example.com`,
+    admin_phone: '0550000001',
+    password: '12345678',
+    confirm_password: '12345678'
+  } : undefined
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset
   } = useForm({
-    resolver: zodResolver(companySchema)
+    resolver: zodResolver(companySchema),
+    defaultValues
   })
 
   const onSubmit = async (data) => {
@@ -110,6 +127,7 @@ export default function CompanyRegistrationPage() {
           role: 'company_admin',
           is_active: true
         }, { onConflict: 'email', ignoreDuplicates: true })
+        .select()
 
       if (userError) throw userError
 

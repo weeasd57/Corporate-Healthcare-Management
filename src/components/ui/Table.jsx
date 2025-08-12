@@ -9,7 +9,7 @@ const Table = ({
     <div className="w-full overflow-auto">
       <table
         className={cn(
-          'w-full caption-bottom text-sm',
+          'w-full caption-bottom text-sm text-gray-900 dark:text-gray-100',
           className
         )}
         {...props}
@@ -26,7 +26,7 @@ const TableHeader = ({
   ...props 
 }) => {
   return (
-    <thead className={cn('[&_tr]:border-b', className)} {...props}>
+    <thead className={cn('[&_tr]:border-b border-gray-200 dark:border-gray-800', className)} {...props}>
       {children}
     </thead>
   )
@@ -50,7 +50,7 @@ const TableFooter = ({
   ...props 
 }) => {
   return (
-    <tfoot className={cn('bg-gray-50 font-medium [&>tr]:last:border-b-0', className)} {...props}>
+    <tfoot className={cn('bg-gray-50 dark:bg-black/60 font-medium [&>tr]:last:border-b-0', className)} {...props}>
       {children}
     </tfoot>
   )
@@ -64,7 +64,7 @@ const TableRow = ({
   return (
     <tr
       className={cn(
-        'border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-gray-50',
+        'border-b border-gray-200 dark:border-gray-800 transition-colors hover:bg-gray-50 dark:hover:bg-black/60 data-[state=selected]:bg-gray-50 dark:data-[state=selected]:bg-black/60',
         className
       )}
       {...props}
@@ -82,7 +82,7 @@ const TableHead = ({
   return (
     <th
       className={cn(
-        'h-12 px-4 text-right align-middle font-medium text-gray-500 [&:has([role=checkbox])]:pr-0',
+        'h-12 px-4 text-right align-middle font-medium text-gray-500 dark:text-gray-300 [&:has([role=checkbox])]:pr-0',
         className
       )}
       {...props}
@@ -117,7 +117,7 @@ const TableCaption = ({
 }) => {
   return (
     <caption
-      className={cn('mt-4 text-sm text-gray-500', className)}
+      className={cn('mt-4 text-sm text-gray-500 dark:text-gray-400', className)}
       {...props}
     >
       {children}

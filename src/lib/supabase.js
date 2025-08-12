@@ -617,6 +617,54 @@ export const db = {
     const { data, error } = await query
     return { data, error }
   }
+
+  ,
+  // Prescriptions
+  createPrescription: async (prescriptionData) => {
+    const { data, error } = await supabase
+      .from('prescriptions')
+      .insert(prescriptionData)
+      .select()
+      .single()
+    return { data, error }
+  },
+
+  getPrescriptions: async (filters = {}) => {
+    let query = supabase
+      .from('prescriptions')
+      .select(`
+        *,
+        employee:users!prescriptions_employee_id_fkey(*),
+        doctor:users!prescriptions_doctor_id_fkey(*),
+        appointment:appointments!prescriptions_appointment_id_fkey(*)
+      `)
+      .order('prescription_date', { ascending: false })
+
+    if (filters.employeeId) {
+      query = query.eq('employee_id', filters.employeeId)
+    }
+    if (filters.employeeIds && Array.isArray(filters.employeeIds) && filters.employeeIds.length > 0) {
+      query = query.in('employee_id', filters.employeeIds)
+    }
+    if (filters.doctorId) {
+      query = query.eq('doctor_id', filters.doctorId)
+    }
+
+    const { data, error } = await query
+    return { data, error }
+  },
+
+  // Medical records helpers
+  getMedicalRecordsForEmployees: async (employeeIds = []) => {
+    if (!Array.isArray(employeeIds) || employeeIds.length === 0) {
+      return { data: [], error: null }
+    }
+    const { data, error } = await supabase
+      .from('medical_records')
+      .select('id, employee_id, health_status, last_checkup_date')
+      .in('employee_id', employeeIds)
+    return { data, error }
+  }
 }
 
 export default supabase

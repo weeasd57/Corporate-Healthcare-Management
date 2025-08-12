@@ -1,5 +1,7 @@
 import './globals.css'
 import ProvidersClient from '@/components/ProvidersClient'
+import ThemeToggle from '@/components/ui/ThemeToggle'
+import FloatingSettings from '@/components/ui/FloatingSettings'
 
 export const metadata = {
   title: 'Company & Hospital App',
@@ -9,9 +11,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" dir="ltr">
-      <body className="antialiased bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+      <body className="antialiased bg-white text-gray-900 dark:bg-black dark:text-gray-100">
         <ProvidersClient>
           {children}
+          <FloatingSettings />
         </ProvidersClient>
       </body>
     </html>

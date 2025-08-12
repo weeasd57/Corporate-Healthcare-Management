@@ -41,13 +41,31 @@ export default function HospitalRegistrationPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
 
+  const isDev = process.env.NODE_ENV !== 'production'
+  const ts = typeof window !== 'undefined' ? Math.floor(Date.now() / 1000) : 0
+  const defaultValues = isDev ? {
+    name: 'General Hospital',
+    email: `hospital+${ts}@example.com`,
+    phone: '0551000000',
+    address: '456 Medical Ave, Health City',
+    license_number: `LIC-${ts}`,
+    contact_person: 'Dr. Alice Health',
+    admin_first_name: 'Alice',
+    admin_last_name: 'Smith',
+    admin_email: `hadmin+${ts}@example.com`,
+    admin_phone: '0551000001',
+    password: '12345678',
+    confirm_password: '12345678'
+  } : undefined
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset
   } = useForm({
-    resolver: zodResolver(hospitalSchema)
+    resolver: zodResolver(hospitalSchema),
+    defaultValues
   })
 
   const onSubmit = async (data) => {
@@ -60,7 +78,7 @@ export default function HospitalRegistrationPage() {
         .from('users')
         .select('id')
         .eq('email', data.admin_email)
-        .single()
+        .maybeSingle()
 
       if (existingUser) {
         setError('A user with this email already exists. Please sign in instead.')
@@ -72,7 +90,7 @@ export default function HospitalRegistrationPage() {
         .from('organizations')
         .select('id')
         .eq('email', data.email)
-        .single()
+        .maybeSingle()
 
       if (existingOrg) {
         setError('A hospital with this email already exists.')

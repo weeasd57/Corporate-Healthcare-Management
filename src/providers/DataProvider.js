@@ -9,6 +9,8 @@ const DataContext = createContext()
 export function DataProvider({ children }) {
   const { userData, organization } = useAuth()
   const [employees, setEmployees] = useState([])
+  const [hospitals, setHospitals] = useState([])
+  const [doctors, setDoctors] = useState([])
   const [appointments, setAppointments] = useState([])
   const [sickLeaves, setSickLeaves] = useState([])
   const [checkups, setCheckups] = useState([])
@@ -66,6 +68,42 @@ export function DataProvider({ children }) {
       setCheckups(checkupsRes.data || [])
       setContracts(contractsRes.data || [])
 
+      // 4) Derive hospitals list
+      if (isCompany) {
+        // For company accounts, hospitals come from active contracts
+        const uniqueHospitalsMap = {}
+        ;(contractsRes.data || []).forEach((c) => {
+          if (c?.hospital) {
+            uniqueHospitalsMap[c.hospital.id] = c.hospital
+          }
+        })
+        setHospitals(Object.values(uniqueHospitalsMap))
+      } else if (isHospital) {
+        // For hospital accounts, the only hospital is the current organization
+        if (organization) {
+          setHospitals([organization])
+        } else if (userData?.organization_id) {
+          const { data: org } = await db.getOrganization(userData.organization_id)
+          setHospitals(org ? [org] : [])
+        } else {
+          setHospitals([])
+        }
+      } else {
+        setHospitals([])
+      }
+
+      // 5) Derive doctors list
+      if (isHospital) {
+        // For hospital accounts, doctors are staff in same org with role doctor
+        const hospitalDoctors = safeEmployees.filter((u) => u.role === 'doctor')
+        setDoctors(hospitalDoctors)
+      } else if (isCompany) {
+        // For company accounts, we may not have hospital staff loaded; keep empty for now
+        setDoctors([])
+      } else {
+        setDoctors([])
+      }
+
     } catch (error) {
       console.error('Load data error:', error)
     } finally {
@@ -107,6 +145,8 @@ export function DataProvider({ children }) {
     const cached = getCache(key)
     if (cached) {
       if (cached.employees) setEmployees(cached.employees)
+      if (cached.hospitals) setHospitals(cached.hospitals)
+      if (cached.doctors) setDoctors(cached.doctors)
       if (cached.appointments) setAppointments(cached.appointments)
       if (cached.sickLeaves) setSickLeaves(cached.sickLeaves)
       if (cached.checkups) setCheckups(cached.checkups)
@@ -123,12 +163,14 @@ export function DataProvider({ children }) {
     const key = `chm:data:${userData.organization_id}`
     setCache(key, {
       employees,
+      hospitals,
+      doctors,
       appointments,
       sickLeaves,
       checkups,
       contracts
     })
-  }, [userData?.organization_id, employees, appointments, sickLeaves, checkups, contracts])
+  }, [userData?.organization_id, employees, hospitals, doctors, appointments, sickLeaves, checkups, contracts])
 
   // Load data when user or organization changes
   useEffect(() => {
@@ -217,6 +259,8 @@ export function DataProvider({ children }) {
 
   const value = {
     employees,
+    hospitals,
+    doctors,
     appointments,
     sickLeaves,
     checkups,

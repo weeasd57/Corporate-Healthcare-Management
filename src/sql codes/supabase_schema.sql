@@ -314,6 +314,15 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "users_select_own" ON users
   FOR SELECT USING (auth_id = auth.uid());
 
+-- Allow authenticated users to select users within their organization
+DROP POLICY IF EXISTS "users_select_by_org" ON users;
+CREATE POLICY "users_select_by_org" ON users
+  FOR SELECT
+  TO authenticated
+  USING (
+    users.organization_id = COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid
+  );
+
 CREATE POLICY "users_insert_own" ON users
   FOR INSERT WITH CHECK (auth_id = auth.uid());
 
@@ -349,6 +358,199 @@ CREATE POLICY "checkups_select_all" ON checkups
 
 CREATE POLICY "sick_leaves_select_all" ON sick_leaves
   FOR SELECT USING (true);
+
+-- =============================================
+-- ADDITIONAL POLICIES TO ENABLE COMPANY/HOSPITAL ADMINS
+-- TO MANAGE USERS AND MEDICAL RECORDS
+-- =============================================
+
+-- Allow authenticated company admins/HR/managers to insert users
+-- within their own organization (auth_id can be NULL for employees
+-- who haven't registered yet)
+DROP POLICY IF EXISTS "users_insert_by_org_admins" ON users;
+CREATE POLICY "users_insert_by_org_admins" ON users
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    users.organization_id = COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin')
+  );
+
+-- Optionally allow org admins to update users in their organization
+-- (kept permissive for DEV; tighten as needed)
+DROP POLICY IF EXISTS "users_update_by_org_admins" ON users;
+CREATE POLICY "users_update_by_org_admins" ON users
+  FOR UPDATE
+  TO authenticated
+  USING (
+    users.organization_id = COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin')
+  )
+  WITH CHECK (
+    users.organization_id = COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin')
+  );
+
+-- Allow org admins to delete users in their organization
+DROP POLICY IF EXISTS "users_delete_by_org_admins" ON users;
+CREATE POLICY "users_delete_by_org_admins" ON users
+  FOR DELETE
+  TO authenticated
+  USING (
+    users.organization_id = COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin')
+  );
+
+-- Allow authenticated org admins/medical staff to insert medical records
+-- for employees in the same organization
+DROP POLICY IF EXISTS "medrecs_insert_by_org_staff" ON medical_records;
+CREATE POLICY "medrecs_insert_by_org_staff" ON medical_records
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = medical_records.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin','doctor','nurse')
+  );
+
+-- Allow authenticated users in the same org to select medical records
+-- (DEV-friendly; tighten in production if needed)
+DROP POLICY IF EXISTS "medrecs_select_by_org" ON medical_records;
+CREATE POLICY "medrecs_select_by_org" ON medical_records
+  FOR SELECT
+  TO authenticated
+  USING (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = medical_records.employee_id
+    )
+  );
+
+-- =============================================
+-- Appointments policies (insert/update/delete) within organization
+-- =============================================
+DROP POLICY IF EXISTS "appointments_insert_by_org_staff" ON appointments;
+CREATE POLICY "appointments_insert_by_org_staff" ON appointments
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = appointments.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin','doctor','nurse','receptionist')
+  );
+
+DROP POLICY IF EXISTS "appointments_update_by_org_staff" ON appointments;
+CREATE POLICY "appointments_update_by_org_staff" ON appointments
+  FOR UPDATE
+  TO authenticated
+  USING (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = appointments.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin','doctor','nurse','receptionist')
+  )
+  WITH CHECK (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = appointments.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin','doctor','nurse','receptionist')
+  );
+
+DROP POLICY IF EXISTS "appointments_delete_by_org_staff" ON appointments;
+CREATE POLICY "appointments_delete_by_org_staff" ON appointments
+  FOR DELETE
+  TO authenticated
+  USING (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = appointments.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin','doctor','nurse','receptionist')
+  );
+
+-- =============================================
+-- Checkups policies
+-- =============================================
+DROP POLICY IF EXISTS "checkups_insert_by_org_staff" ON checkups;
+CREATE POLICY "checkups_insert_by_org_staff" ON checkups
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = checkups.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin','doctor','nurse')
+  );
+
+DROP POLICY IF EXISTS "checkups_update_by_org_staff" ON checkups;
+CREATE POLICY "checkups_update_by_org_staff" ON checkups
+  FOR UPDATE
+  TO authenticated
+  USING (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = checkups.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin','doctor','nurse')
+  )
+  WITH CHECK (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = checkups.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin','doctor','nurse')
+  );
+
+DROP POLICY IF EXISTS "checkups_delete_by_org_staff" ON checkups;
+CREATE POLICY "checkups_delete_by_org_staff" ON checkups
+  FOR DELETE
+  TO authenticated
+  USING (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = checkups.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin','doctor','nurse')
+  );
+
+-- =============================================
+-- Sick leaves policies
+-- =============================================
+DROP POLICY IF EXISTS "sick_leaves_insert_by_org_staff" ON sick_leaves;
+CREATE POLICY "sick_leaves_insert_by_org_staff" ON sick_leaves
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = sick_leaves.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin')
+  );
+
+DROP POLICY IF EXISTS "sick_leaves_update_by_org_staff" ON sick_leaves;
+CREATE POLICY "sick_leaves_update_by_org_staff" ON sick_leaves
+  FOR UPDATE
+  TO authenticated
+  USING (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = sick_leaves.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin')
+  )
+  WITH CHECK (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = sick_leaves.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin')
+  );
+
+DROP POLICY IF EXISTS "sick_leaves_delete_by_org_staff" ON sick_leaves;
+CREATE POLICY "sick_leaves_delete_by_org_staff" ON sick_leaves
+  FOR DELETE
+  TO authenticated
+  USING (
+    COALESCE(NULLIF((auth.jwt() -> 'user_metadata' ->> 'organization_id'), ''), '00000000-0000-0000-0000-000000000000')::uuid = (
+      SELECT emp.organization_id FROM users AS emp WHERE emp.id = sick_leaves.employee_id
+    )
+    AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), '') IN ('company_admin','company_hr','company_manager','hospital_admin')
+  );
 
 -- =============================================
 -- USEFUL FUNCTIONS
