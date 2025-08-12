@@ -38,7 +38,7 @@ function LoginContent() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (userData?.user) {
+    if (userData) {
       const redirectTo = searchParams.get('redirect') || '/dashboard'
       router.push(redirectTo)
     }
