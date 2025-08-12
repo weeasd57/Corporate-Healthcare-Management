@@ -22,7 +22,7 @@ import { formatDate, getStatusColor, getStatusText } from '@/lib/utils'
 
 export default function HospitalDashboard() {
   const router = useRouter()
-  const { user, userData, organization, loading: authLoading } = useAuth() // Use user, userData, organization, loading from AuthProvider
+  const { userData, organization, loading: authLoading } = useAuth() // Use userData, organization from AuthProvider
   const [stats, setStats] = useState({
     totalDoctors: 0,
     totalNurses: 0,
@@ -36,20 +36,20 @@ export default function HospitalDashboard() {
   const [loading, setLoading] = useState(true) // Local loading state for dashboard data
 
   useEffect(() => {
-    if (user && organization) {
+    if (userData && organization) {
       loadDashboardData()
-    } else if (!authLoading && !user) {
+    } else if (!authLoading && !userData) {
       // If auth is done loading and no user, redirect to login
       router.push('/auth/login')
     }
-  }, [user, organization, authLoading])
+  }, [userData, organization, authLoading])
 
   // Remove checkAuth as AuthProvider handles it
   // const checkAuth = async () => { ... } 
 
   const loadDashboardData = async () => {
     // Ensure user and organization are available from useAuth
-    if (!user || !organization) return
+    if (!userData || !organization) return
 
     try {
       setLoading(true)
@@ -62,22 +62,22 @@ export default function HospitalDashboard() {
         { data: contracts },
         { data: allAppointments }
       ] = await Promise.all([
-        db.getUsersByOrganization(user.organization_id),
+        db.getUsersByOrganization(userData.organization_id),
         db.getAppointments({
-          hospitalId: user.organization_id,
+          hospitalId: userData.organization_id,
           dateFrom: new Date().toISOString().split('T')[0],
           dateTo: new Date().toISOString().split('T')[0]
         }),
         db.getAppointments({
-          hospitalId: user.organization_id,
+          hospitalId: userData.organization_id,
           status: 'scheduled'
         }),
         db.getContracts({
-          hospitalId: user.organization_id,
+          hospitalId: userData.organization_id,
           status: 'active'
         }),
         db.getAppointments({
-          hospitalId: user.organization_id,
+          hospitalId: userData.organization_id,
           limit: 10 // Limit to recent appointments only
         })
       ])
@@ -148,7 +148,7 @@ export default function HospitalDashboard() {
                   {organization?.name || 'Hospital Dashboard'}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  Welcome {user?.first_name} {user?.last_name}
+                                     Welcome {userData?.first_name} {userData?.last_name}
                 </p>
               </div>
             </div>

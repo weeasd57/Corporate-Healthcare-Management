@@ -19,6 +19,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Card from '@/components/ui/Card'
+import { db } from '@/lib/supabase'
 import { validateEmail, validatePhone } from '@/lib/utils'
 
 // Schema validation

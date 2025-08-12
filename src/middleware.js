@@ -16,14 +16,7 @@ export async function middleware(req) {
   // Check if the path is public
   const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
 
-  // If not on a public page, redirect to auth
-  if (!isPublicPath) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = '/auth/login'
-    redirectUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(redirectUrl)
-  }
-
+  // Allow all requests to proceed; client-side providers handle auth/redirects
   return NextResponse.next()
 }
 
