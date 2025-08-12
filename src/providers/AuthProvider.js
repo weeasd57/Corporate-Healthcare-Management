@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { auth, db } from '@/lib/supabase'
+import { auth, supabase } from '@/lib/supabase'
 
 const AuthContext = createContext()
 
@@ -11,63 +11,128 @@ export function AuthProvider({ children }) {
   const [organization, setOrganization] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // In-flight map to dedupe concurrent loads for the same auth id
+  const inflight = {}
+
   const loadUserData = useCallback(async (authUser) => {
-    try {
-      setUser(authUser)
-      
-      // Load user data from database
-      const { data: foundUser } = await db.getUserByAuthId(authUser.id)
-      if (foundUser) {
-        setUserData(foundUser)
-        const { data: orgData } = await db.getOrganization(foundUser.organization_id)
-        setOrganization(orgData)
-        return
-      }
-
-      // Fallback: create user row from auth metadata if missing
-      const meta = authUser.user_metadata || {}
-      if (meta.organization_id) {
-        const { data: created } = await db.createUser({
-          auth_id: authUser.id,
-          organization_id: meta.organization_id,
-          email: authUser.email,
-          first_name: meta.first_name || '',
-          last_name: meta.last_name || '',
-          role: meta.role || 'employee',
-          is_active: true
-        })
-        if (created) {
-          setUserData(created)
-          const { data: orgData } = await db.getOrganization(created.organization_id)
-          setOrganization(orgData)
-        }
-      }
-    } catch (error) {
-      console.error('Load user data error:', error)
+    if (!authUser) return
+    const key = authUser.id
+    
+    // Check if we already have data for this user
+    if (userData && userData.auth_id === authUser.id) {
+      console.log('User data already loaded, skipping...')
+      return userData
     }
-  }, [])
+    
+    if (inflight[key]) {
+      console.log('User data loading in progress, waiting...')
+      return inflight[key]
+    }
 
+    const promise = (async () => {
+      try {
+        console.time('loadUserData')
+        setUser(authUser)
+        
+        // Check if user already exists
+        const { data: existingUser, error: fetchError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('auth_id', authUser.id)
+          .single()
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          throw fetchError
+        }
+
+        if (existingUser) {
+          setUserData(existingUser)
+          // Load organization data
+          if (existingUser.organization_id) {
+            const { data: orgData } = await supabase
+              .from('organizations')
+              .select('*')
+              .eq('id', existingUser.organization_id)
+              .single()
+            setOrganization(orgData)
+          }
+          return existingUser
+        } else {
+          // Create new user
+          const { data: created, error: createError } = await supabase
+            .from('users')
+            .insert([{
+              auth_id: authUser.id,
+              email: authUser.email,
+              first_name: authUser.user_metadata?.first_name || authUser.email?.split('@')[0] || 'Unknown',
+              last_name: authUser.user_metadata?.last_name || '',
+              role: 'employee',
+              is_active: true,
+              created_at: new Date().toISOString()
+            }])
+            .select()
+            .single()
+
+          if (createError) {
+            // Handle 409 Conflict - user might have been created by another process
+            if (createError.code === '23505') { // Unique constraint violation
+              console.warn('User already exists, fetching existing data...')
+              const { data: existing } = await supabase
+                .from('users')
+                .select('*')
+                .eq('auth_id', authUser.id)
+                .single()
+              if (existing) {
+                setUserData(existing)
+                return existing
+              }
+            }
+            throw createError
+          }
+
+          setUserData(created)
+          return created
+        }
+      } catch (error) {
+        console.error('Load user data error:', error)
+        // Don't throw - let UI continue working
+        return null
+      } finally {
+        console.timeEnd('loadUserData')
+        delete inflight[key]
+      }
+    })()
+
+    inflight[key] = promise
+    return promise
+  }, [userData])
+
+  // Non-blocking auth check: show UI quickly, load user data in background
   const checkAuth = useCallback(async () => {
     try {
       const { user } = await auth.getCurrentUser()
-      if (user) {
-        await loadUserData(user)
+      if (user && !userData) { // Only load if no userData exists
+        // do not await to avoid blocking UI
+        loadUserData(user).catch((err) => console.error('Background loadUserData error:', err))
       }
     } catch (error) {
       console.error('Auth check error:', error)
     } finally {
       setLoading(false)
     }
-  }, [loadUserData])
+  }, [loadUserData, userData])
 
   useEffect(() => {
     // Check initial auth state
     checkAuth()
     
-    // Listen for auth changes
-    const { data: { subscription } } = auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        await loadUserData(session.user)
+    // Listen for auth changes. Do NOT block on loading user data here
+    // to avoid delaying UI (login spinner/redirect). Load user data
+    // in background and handle errors locally.
+    const { data: { subscription } } = auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user && !userData) {
+        // Only load if no userData exists to avoid duplicate calls
+        loadUserData(session.user).catch((err) => console.error('Background loadUserData error:', err))
       } else if (event === 'SIGNED_OUT') {
         setUser(null)
         setUserData(null)
@@ -77,14 +142,17 @@ export function AuthProvider({ children }) {
     })
 
     return () => subscription?.unsubscribe()
-  }, [checkAuth, loadUserData])
+  }, [checkAuth, loadUserData, userData])
 
   const signIn = async (email, password) => {
     try {
+      console.time('auth.signIn')
       const { data, error } = await auth.signIn(email, password)
       if (error) throw error
+      console.timeEnd('auth.signIn')
       return { data, error: null }
     } catch (error) {
+      console.timeEnd('auth.signIn')
       return { data: null, error }
     }
   }

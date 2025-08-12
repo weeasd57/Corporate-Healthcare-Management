@@ -94,22 +94,160 @@ export const useAuth = () => {
 // Helper functions for common operations
 export const auth = {
   signUp: async (email, password, userData) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userData
+    try {
+      // Validate input
+      if (!email || !password) {
+        return {
+          data: null,
+          error: {
+            message: 'Email and password are required',
+            status: 400
+          }
+        }
       }
-    })
-    return { data, error }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        return {
+          data: null,
+          error: {
+            message: 'Invalid email format',
+            status: 400
+          }
+        }
+      }
+
+      // Validate password length
+      if (password.length < 6) {
+        return {
+          data: null,
+          error: {
+            message: 'Password must be at least 6 characters',
+            status: 400
+          }
+        }
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          data: userData
+        }
+      })
+
+      if (error) {
+        // Improve error messages
+        let userMessage = 'Sign up failed'
+        if (error.message.includes('User already registered')) {
+          userMessage = 'A user with this email already exists. Please sign in instead.'
+        } else if (error.message.includes('Password')) {
+          userMessage = 'Password must be at least 6 characters long.'
+        } else if (error.message.includes('Email')) {
+          userMessage = 'Please enter a valid email address.'
+        } else if (error.message.includes('Invalid')) {
+          userMessage = 'Invalid email or password format.'
+        } else if (error.status === 422) {
+          userMessage = 'Invalid registration data. Please check your information.'
+        }
+
+        return {
+          data: null,
+          error: {
+            ...error,
+            message: userMessage
+          }
+        }
+      }
+
+      return { data, error: null }
+    } catch (err) {
+      console.error('Sign up error:', err)
+      return {
+        data: null,
+        error: {
+          message: 'Connection error. Please try again.',
+          status: 500
+        }
+      }
+    }
   },
 
   signIn: async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-    return { data, error }
+    try {
+      // Validate input
+      if (!email || !password) {
+        return {
+          data: null,
+          error: {
+            message: 'Email and password are required',
+            status: 400
+          }
+        }
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        return {
+          data: null,
+          error: {
+            message: 'Invalid email format',
+            status: 400
+          }
+        }
+      }
+
+      // Validate password length
+      if (password.length < 6) {
+        return {
+          data: null,
+          error: {
+            message: 'Password must be at least 6 characters',
+            status: 400
+          }
+        }
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password
+      })
+
+      if (error) {
+        // Improve error messages
+        let userMessage = 'Sign in failed'
+        if (error.message.includes('Invalid login credentials')) {
+          userMessage = 'Invalid email or password'
+        } else if (error.message.includes('Email not confirmed')) {
+          userMessage = 'Please confirm your email before signing in'
+        } else if (error.message.includes('Too many requests')) {
+          userMessage = 'Too many attempts. Please try again later'
+        } else if (error.status === 400) {
+          userMessage = 'Invalid email or password format'
+        }
+
+        return {
+          data: null,
+          error: {
+            ...error,
+            message: userMessage
+          }
+        }
+      }
+
+      return { data, error: null }
+    } catch (err) {
+      console.error('Sign in error:', err.message, err)
+      return {
+        data: null,
+        error: {
+          message: 'Connection error. Please try again.',
+          status: 500
+        }
+      }
+    }
   },
 
   signOut: async () => {
@@ -150,24 +288,55 @@ export const db = {
 
   // Users
   createUser: async (userData) => {
-    // Use upsert to avoid duplicate email constraint errors during race conditions
-    // Do not request returning row to avoid 406 Not Acceptable under some RLS/session states
-    const { error } = await supabase
-      .from('users')
-      .upsert(userData, { onConflict: 'email', ignoreDuplicates: true })
-
-    // Optionally fetch after to minimize time window issues
-    let data = null
-    if (!error && userData?.email) {
-      const fetchExisting = await supabase
+    // Try upsert to avoid duplicate email constraint errors during race conditions
+    // Then fetch the existing row to return a consistent representation.
+    try {
+      const { error } = await supabase
         .from('users')
-        .select('*')
-        .eq('email', userData.email)
-        .maybeSingle()
-      data = fetchExisting.data
-    }
+        .upsert(userData, { onConflict: 'email', ignoreDuplicates: true })
 
-    return { data, error }
+      if (error) {
+        // If server returns conflict (409) or other error, attempt to fetch existing user
+        // and return it instead of throwing. This makes createUser idempotent.
+        if (error?.status === 409 || /conflict/i.test(error.message || '')) {
+          if (userData?.email) {
+            const fetchExisting = await supabase
+              .from('users')
+              .select('*')
+              .eq('email', userData.email)
+              .maybeSingle()
+            return { data: fetchExisting.data, error: null }
+          }
+        }
+        return { data: null, error }
+      }
+
+      // Fetch row after upsert to return representation
+      let data = null
+      if (userData?.email) {
+        const fetchExisting = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', userData.email)
+          .maybeSingle()
+        data = fetchExisting.data
+      }
+
+      return { data, error: null }
+    } catch (err) {
+      // Fallback: try to fetch existing user if possible
+      try {
+        if (userData?.email) {
+          const fetchExisting = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', userData.email)
+            .maybeSingle()
+          return { data: fetchExisting.data, error: null }
+        }
+      } catch (e) {}
+      return { data: null, error: err }
+    }
   },
 
   getUser: async (id) => {
@@ -183,6 +352,16 @@ export const db = {
     const { data, error } = await supabase
       .from('users')
       .select('*')
+      .eq('auth_id', authId)
+      .maybeSingle()
+    return { data, error }
+  },
+
+  // Get user and their organization in a single request to reduce round-trips
+  getUserWithOrganizationByAuthId: async (authId) => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*, organization:organizations(*)')
       .eq('auth_id', authId)
       .maybeSingle()
     return { data, error }
@@ -291,6 +470,9 @@ export const db = {
     }
     if (filters.dateTo) {
       query = query.lte('appointment_date', filters.dateTo)
+    }
+    if (filters.limit) {
+      query = query.limit(filters.limit)
     }
 
     const { data, error } = await query

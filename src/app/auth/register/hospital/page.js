@@ -53,9 +53,33 @@ export default function HospitalRegistrationPage() {
   const onSubmit = async (data) => {
     setIsLoading(true)
     setError('')
-
+    
     try {
-      // 1. Create organization
+      // 1. Check if user already exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', data.admin_email)
+        .single()
+
+      if (existingUser) {
+        setError('A user with this email already exists. Please sign in instead.')
+        return
+      }
+
+      // 2. Check if organization already exists
+      const { data: existingOrg } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('email', data.email)
+        .single()
+
+      if (existingOrg) {
+        setError('A hospital with this email already exists.')
+        return
+      }
+
+      // 3. Create organization
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .insert({
@@ -65,15 +89,19 @@ export default function HospitalRegistrationPage() {
           phone: data.phone,
           address: data.address,
           license_number: data.license_number,
-          contact_person: data.contact_person,
+          contact_person: `${data.admin_first_name} ${data.admin_last_name}`,
           status: 'active'
         })
         .select()
         .single()
 
-      if (orgError) throw orgError
+      if (orgError) {
+        console.error('Organization creation error:', orgError)
+        setError('Failed to create hospital. Please try again.')
+        return
+      }
 
-      // 2. Create auth user
+      // 4. Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.admin_email,
         password: data.password,
@@ -87,12 +115,26 @@ export default function HospitalRegistrationPage() {
         }
       })
 
-      if (authError) throw authError
+      if (authError) {
+        console.error('Auth creation error:', authError)
+        
+        // Handle specific auth errors
+        if (authError.message.includes('User already registered')) {
+          setError('A user with this email already exists. Please sign in instead.')
+        } else if (authError.message.includes('Password')) {
+          setError('Password must be at least 6 characters long.')
+        } else if (authError.message.includes('Email')) {
+          setError('Please enter a valid email address.')
+        } else {
+          setError('Failed to create user account. Please try again.')
+        }
+        return
+      }
 
-      // 3. Create user record (no select to avoid 406 before RLS/session fully ready)
+      // 5. Create user record
       const { error: userError } = await supabase
         .from('users')
-        .upsert({
+        .insert({
           auth_id: authData.user.id,
           organization_id: orgData.id,
           email: data.admin_email,
@@ -101,16 +143,20 @@ export default function HospitalRegistrationPage() {
           phone: data.admin_phone,
           role: 'hospital_admin',
           is_active: true
-        }, { onConflict: 'email', ignoreDuplicates: true })
+        })
 
-      if (userError) throw userError
+      if (userError) {
+        console.error('User creation error:', userError)
+        setError('Failed to create user profile. Please contact support.')
+        return
+      }
 
       // Success - redirect to dashboard
       router.push('/dashboard')
       
     } catch (error) {
       console.error('Registration error:', error)
-      setError(error.message || 'An error occurred during registration')
+      setError(error.message || 'An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -286,7 +332,7 @@ export default function HospitalRegistrationPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -307,7 +353,7 @@ export default function HospitalRegistrationPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                       {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>

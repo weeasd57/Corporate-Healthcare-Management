@@ -73,6 +73,63 @@ export function DataProvider({ children }) {
     }
   }, [userData?.organization_id, organization?.type])
 
+  // --- Simple localStorage cache to reduce refetches / reloads ---
+  const CACHE_TTL = 1000 * 60 * 5 // 5 minutes
+
+  const getCache = (key) => {
+    try {
+      if (typeof window === 'undefined') return null
+      const raw = localStorage.getItem(key)
+      if (!raw) return null
+      const parsed = JSON.parse(raw)
+      if (!parsed?.cachedAt) return null
+      if (Date.now() - parsed.cachedAt > CACHE_TTL) {
+        localStorage.removeItem(key)
+        return null
+      }
+      return parsed.data
+    } catch (err) {
+      return null
+    }
+  }
+
+  const setCache = (key, data) => {
+    try {
+      if (typeof window === 'undefined') return
+      localStorage.setItem(key, JSON.stringify({ cachedAt: Date.now(), data }))
+    } catch (err) {}
+  }
+
+  // Load cached data quickly then refresh in background
+  useEffect(() => {
+    if (!userData?.organization_id) return
+    const key = `chm:data:${userData.organization_id}`
+    const cached = getCache(key)
+    if (cached) {
+      if (cached.employees) setEmployees(cached.employees)
+      if (cached.appointments) setAppointments(cached.appointments)
+      if (cached.sickLeaves) setSickLeaves(cached.sickLeaves)
+      if (cached.checkups) setCheckups(cached.checkups)
+      if (cached.contracts) setContracts(cached.contracts)
+    }
+
+    // Always refresh in background
+    loadData()
+  }, [userData?.organization_id, loadData])
+
+  // Persist caches when data changes
+  useEffect(() => {
+    if (!userData?.organization_id) return
+    const key = `chm:data:${userData.organization_id}`
+    setCache(key, {
+      employees,
+      appointments,
+      sickLeaves,
+      checkups,
+      contracts
+    })
+  }, [userData?.organization_id, employees, appointments, sickLeaves, checkups, contracts])
+
   // Load data when user or organization changes
   useEffect(() => {
     if (userData && organization) {

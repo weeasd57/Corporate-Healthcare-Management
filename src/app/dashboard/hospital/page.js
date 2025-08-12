@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  Users, 
-  Calendar, 
-  FileText, 
-  TrendingUp, 
-  Stethoscope, 
+import {
+  Users,
+  Calendar,
+  FileText,
+  TrendingUp,
+  Stethoscope,
   Building2,
   Plus,
   Search,
@@ -15,14 +15,14 @@ import {
   DollarSign
 } from 'lucide-react'
 import { auth, db } from '@/lib/supabase'
+import { useAuth } from '@/providers/AuthProvider' // Import useAuth
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import { formatDate, getStatusColor, getStatusText } from '@/lib/utils'
 
 export default function HospitalDashboard() {
   const router = useRouter()
-  const [user, setUser] = useState(null)
-  const [organization, setOrganization] = useState(null)
+  const { user, userData, organization, loading: authLoading } = useAuth() // Use user, userData, organization, loading from AuthProvider
   const [stats, setStats] = useState({
     totalDoctors: 0,
     totalNurses: 0,
@@ -33,73 +33,60 @@ export default function HospitalDashboard() {
   })
   const [todayAppointments, setTodayAppointments] = useState([])
   const [recentPatients, setRecentPatients] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true) // Local loading state for dashboard data
 
   useEffect(() => {
-    checkAuth()
-    loadDashboardData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const checkAuth = async () => {
-    try {
-      const { user } = await auth.getCurrentUser()
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
-
-      const { data: userData } = await db.getUserByAuthId(user.id)
-      if (!userData || !userData.role.startsWith('hospital_')) {
-        router.push('/auth/login')
-        return
-      }
-
-      setUser(userData)
-      
-      // Load organization data
-      const { data: orgData } = await db.getOrganization(userData.organization_id)
-      setOrganization(orgData)
-    } catch (error) {
-      console.error('Auth check error:', error)
+    if (user && organization) {
+      loadDashboardData()
+    } else if (!authLoading && !user) {
+      // If auth is done loading and no user, redirect to login
       router.push('/auth/login')
     }
-  }
+  }, [user, organization, authLoading])
+
+  // Remove checkAuth as AuthProvider handles it
+  // const checkAuth = async () => { ... } 
 
   const loadDashboardData = async () => {
-    if (!user) return
+    // Ensure user and organization are available from useAuth
+    if (!user || !organization) return
 
     try {
-      // Load hospital staff
-      const { data: staff } = await db.getUsersByOrganization(user.organization_id)
+      setLoading(true)
+      
+      // Load all data in parallel using Promise.all
+      const [
+        { data: staff },
+        { data: todayAppointments },
+        { data: pendingAppointments },
+        { data: contracts },
+        { data: allAppointments }
+      ] = await Promise.all([
+        db.getUsersByOrganization(user.organization_id),
+        db.getAppointments({
+          hospitalId: user.organization_id,
+          dateFrom: new Date().toISOString().split('T')[0],
+          dateTo: new Date().toISOString().split('T')[0]
+        }),
+        db.getAppointments({
+          hospitalId: user.organization_id,
+          status: 'scheduled'
+        }),
+        db.getContracts({
+          hospitalId: user.organization_id,
+          status: 'active'
+        }),
+        db.getAppointments({
+          hospitalId: user.organization_id,
+          limit: 10 // Limit to recent appointments only
+        })
+      ])
+
+      // Process data
       const doctors = staff?.filter(s => s.role === 'doctor') || []
       const nurses = staff?.filter(s => s.role === 'nurse') || []
       
-      // Load today's appointments
-      const today = new Date().toISOString().split('T')[0]
-      const { data: appointments } = await db.getAppointments({
-        hospitalId: user.organization_id,
-        dateFrom: today,
-        dateTo: today
-      })
-
-      // Load pending appointments
-      const { data: pendingAppointments } = await db.getAppointments({
-        hospitalId: user.organization_id,
-        status: 'scheduled'
-      })
-
-      // Load contracts
-      const { data: contracts } = await db.getContracts({
-        hospitalId: user.organization_id,
-        status: 'active'
-      })
-
-      // Load recent patients (from appointments)
-      const { data: allAppointments } = await db.getAppointments({
-        hospitalId: user.organization_id
-      })
-      
+      // Get unique patients from recent appointments
       const uniquePatients = allAppointments?.reduce((acc, appointment) => {
         if (appointment.employee && !acc.find(p => p.id === appointment.employee.id)) {
           acc.push(appointment.employee)
@@ -107,20 +94,21 @@ export default function HospitalDashboard() {
         return acc
       }, []) || []
 
+      // Update state
       setStats({
         totalDoctors: doctors.length,
         totalNurses: nurses.length,
-        todayAppointments: appointments?.length || 0,
+        todayAppointments: todayAppointments?.length || 0,
         pendingAppointments: pendingAppointments?.length || 0,
         activeContracts: contracts?.length || 0,
-        monthlyRevenue: 0 // TODO: Calculate from invoices
+        monthlyRevenue: contracts?.reduce((sum, contract) => sum + (contract.rates?.monthly || 0), 0) || 0
       })
-
-      setTodayAppointments(appointments?.slice(0, 5) || [])
-      setRecentPatients(uniquePatients.slice(0, 5))
-
+      
+      setTodayAppointments(todayAppointments || [])
+      setRecentPatients(uniquePatients.slice(0, 5)) // Show only 5 recent patients
+      
     } catch (error) {
-      console.error('Dashboard data error:', error)
+      console.error('Dashboard data loading error:', error)
     } finally {
       setLoading(false)
     }
@@ -135,12 +123,13 @@ export default function HospitalDashboard() {
     }
   }
 
-  if (loading) {
+  // Show loading spinner if auth is still loading or dashboard data is loading
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">Loading dashboard data...</p>
         </div>
       </div>
     )

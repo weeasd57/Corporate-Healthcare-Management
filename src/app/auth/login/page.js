@@ -52,13 +52,31 @@ function LoginContent() {
       const result = await signIn(email, password)
       
       if (result.error) {
-        if (result.error.message.includes('Invalid credentials')) {
+        // Handle different types of errors
+        if (result.error.message.includes('Invalid email or password') || 
+            result.error.message.includes('Invalid credentials')) {
           setError('email', { message: 'Email or password is incorrect' })
+        } else if (result.error.message.includes('Email not confirmed')) {
+          addNotification({
+            type: 'error',
+            title: 'Email not confirmed',
+            message: 'Please check your email and confirm your account before signing in'
+          })
+        } else if (result.error.message.includes('Too many attempts')) {
+          addNotification({
+            type: 'error',
+            title: 'Too many attempts',
+            message: 'Please wait a few minutes before trying again'
+          })
+        } else if (result.error.message.includes('Invalid email format')) {
+          setError('email', { message: 'Please enter a valid email address' })
+        } else if (result.error.message.includes('Password must be at least')) {
+          setError('password', { message: 'Password must be at least 6 characters' })
         } else {
           addNotification({
             type: 'error',
             title: 'Sign-in error',
-            message: result.error.message
+            message: result.error.message || 'An unexpected error occurred'
           })
         }
         return
@@ -79,7 +97,7 @@ function LoginContent() {
       addNotification({
         type: 'error',
         title: 'Connection error',
-        message: 'Please try again'
+        message: 'Please check your internet connection and try again'
       })
     } finally {
       setIsLoading(false)
@@ -96,8 +114,8 @@ function LoginContent() {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center space-x-2 space-x-reverse">
-            <Building2 className="h-12 w-12 text-green-600" />
-            <Stethoscope className="h-12 w-12 text-blue-600" />
+            <Building2 className="h-12 w-12 text-green-600" suppressHydrationWarning />
+            <Stethoscope className="h-12 w-12 text-blue-600" suppressHydrationWarning />
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-gray-100">
             Sign in
@@ -135,13 +153,13 @@ function LoginContent() {
                 />
                 <button
                   type="button"
-                  className="absolute left-3 top-8 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
+                    <EyeOff className="h-5 w-5" suppressHydrationWarning />
                   ) : (
-                    <Eye className="h-5 w-5" />
+                    <Eye className="h-5 w-5" suppressHydrationWarning />
                   )}
                 </button>
               </div>
@@ -175,7 +193,7 @@ function LoginContent() {
                 disabled={isLoading}
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
-                <ArrowRight className="mr-2 h-4 w-4" />
+                <ArrowRight className="mr-2 h-4 w-4" suppressHydrationWarning />
               </Button>
             </div>
           </form>
@@ -195,7 +213,7 @@ function LoginContent() {
               onClick={() => redirectToRegister('company')}
               className="w-full justify-center"
             >
-              <Building2 className="ml-2 h-4 w-4 text-green-600" />
+                                          <Building2 className="ml-2 h-4 w-4 text-green-600" suppressHydrationWarning />
               Company
             </Button>
 
@@ -204,7 +222,7 @@ function LoginContent() {
               onClick={() => redirectToRegister('hospital')}
               className="w-full justify-center"
             >
-              <Stethoscope className="ml-2 h-4 w-4 text-blue-600" />
+                                          <Stethoscope className="ml-2 h-4 w-4 text-blue-600" suppressHydrationWarning />
               Hospital
             </Button>
           </div>
